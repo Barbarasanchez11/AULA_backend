@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Text
+from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Text, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -20,16 +20,28 @@ class Classroom(Base):
 class Event(Base):
     __tablename__ = "events"
     
+    # IDs and relationships
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     classroom_id = Column(UUID(as_uuid=True), ForeignKey("classrooms.id"), nullable=False)
     
-    # Event fields
-    situation = Column(String(100), nullable=False)
-    context = Column(JSON, default={})
+    # Main fields
+    event_type = Column(String(50), nullable=False)
+    description = Column(String(500), nullable=False)
+    
+    # Context fields (structured instead of JSON)
+    moment_of_day = Column(String(20), nullable=False)
+    day_of_week = Column(String(20), nullable=True)
+    duration_minutes = Column(Integer, nullable=True)
+    
+    # Supports
     supports = Column(JSON, default=[])
+    additional_supports = Column(Text, nullable=True)
+    
+    # Result and observations
     result = Column(String(50), nullable=False)
     observations = Column(Text, nullable=True)
     
+    # Timestamp
     timestamp = Column(DateTime, default=datetime.utcnow)
     
     # Relationship
