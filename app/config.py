@@ -1,9 +1,9 @@
-import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Aula Plus Backend"
-    DEBUG: bool = False
+    database_url: str
+    debug: bool = False
+    app_name: str = "AULA+"
 
     class Config:
         env_file = ".env"
