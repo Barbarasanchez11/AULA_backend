@@ -14,8 +14,9 @@ class Classroom(Base):
     extra_metadata = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relationship
+    # Relationships
     events = relationship("Event", back_populates="classroom", cascade="all, delete-orphan")
+    recommendations = relationship("Recommendation", back_populates="classroom", cascade="all, delete-orphan")
 
 class Event(Base):
     __tablename__ = "events"
@@ -46,3 +47,25 @@ class Event(Base):
     
     # Relationship
     classroom = relationship("Classroom", back_populates="events")
+
+
+class Recommendation(Base):
+    __tablename__ = "recommendations"
+    
+    # IDs and relationships
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    classroom_id = Column(UUID(as_uuid=True), ForeignKey("classrooms.id"), nullable=False)
+    
+    # Main fields
+    recommendation_type = Column(String(50), nullable=False)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=False)
+    applicable_context = Column(Text, nullable=False)
+    detected_pattern = Column(Text, nullable=False)
+    confidence = Column(String(20), nullable=False)
+    
+    # Timestamp
+    generated_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    classroom = relationship("Classroom", back_populates="recommendations")
