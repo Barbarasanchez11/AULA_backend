@@ -1,5 +1,5 @@
 from app.models.database import engine, Base
-from app.models.models import Classroom, Event
+from app.models.models import Classroom, Event, Recommendation
 
 async def init_db():
     async with engine.begin() as conn:
