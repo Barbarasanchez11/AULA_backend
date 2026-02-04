@@ -82,3 +82,22 @@ async def update_classroom(id: UUID, classroom_update: ClassroomUpdate, db: Asyn
     
     return db_classroom
 
+@router.delete("/{id}", status_code=204)
+async def delete_classroom(id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Delete a classroom by ID.
+    
+    Deletes the classroom and all associated events and recommendations (cascade delete).
+    Returns 204 No Content if successful, or 404 if not found.
+    """
+    result = await db.execute(select(Classroom).where(Classroom.id == id))
+    db_classroom = result.scalar_one_or_none()
+    
+    if not db_classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    await db.delete(db_classroom)
+    await db.commit()
+    
+    return None
+
