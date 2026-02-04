@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from .routers import eventos, classrooms
+from .routers import events, classrooms
 
 app = FastAPI(title="Aula Plus Backend")
 
-app.include_router(eventos.router)
+app.include_router(events.router)
 app.include_router(classrooms.router)
 
 @app.get("/")
