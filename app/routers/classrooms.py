@@ -6,7 +6,7 @@ from uuid import UUID
 
 from app.models.database import get_db
 from app.models.models import Classroom
-from app.schemas.classroom import ClassroomResponse
+from app.schemas.classroom import ClassroomResponse, ClassroomCreate
 
 router = APIRouter(
     prefix="/classrooms",
@@ -38,4 +38,23 @@ async def get_classroom(id: UUID, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Classroom not found")
     
     return classroom
+
+@router.post("/", response_model=ClassroomResponse, status_code=201)
+async def create_classroom(classroom: ClassroomCreate, db: AsyncSession = Depends(get_db)):
+    """
+    Create a new classroom.
+    
+    Creates a new classroom with the provided data and returns the created classroom.
+    """
+    db_classroom = Classroom(
+        name=classroom.name,
+        type=classroom.type,
+        extra_metadata=classroom.extra_metadata or {}
+    )
+    
+    db.add(db_classroom)
+    await db.commit()
+    await db.refresh(db_classroom)
+    
+    return db_classroom
 
