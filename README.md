@@ -107,68 +107,106 @@ El sistema registra eventos anonimizados del aula en cuatro categorías:
 
 ### Stack Tecnológico
 
-- **Backend**: Python + FastAPI
-- **Base de datos relacional**: PostgreSQL
-- **Orquestación IA**: LangGraph
-- **Embeddings semánticos**: Para análisis de similitud entre eventos
-- **Vector DB**: FAISS o Chroma (para búsqueda semántica de patrones)
+- **Backend**: Python 3.11 + FastAPI
+- **Base de datos relacional**: PostgreSQL 16
+- **ORM**: SQLAlchemy 2.0 (async)
+- **Validación de datos**: Pydantic v2
+- **Orquestación IA**: LangGraph (futuro)
+- **Embeddings semánticos**: Para análisis de similitud entre eventos (futuro)
+- **Vector DB**: FAISS o Chroma (para búsqueda semántica de patrones) (futuro)
 - **Despliegue**: Contenedores Docker, escalable por aula
+- **Visor de BD**: Adminer (puerto 8080)
+
+### Estructura del Proyecto
+
+```
+AULA_backend/
+├── app/
+│   ├── main.py                 # Aplicación FastAPI principal
+│   ├── config.py               # Configuración (settings)
+│   ├── models/
+│   │   ├── database.py         # Configuración BD y sesiones
+│   │   ├── models.py           # Modelos SQLAlchemy (Classroom, Event, Recommendation)
+│   │   └── init_db.py          # Script de inicialización de BD
+│   ├── routers/
+│   │   ├── classrooms.py       # Endpoints de gestión de aulas
+│   │   ├── events.py           # Endpoints de gestión de eventos
+│   │   └── recommendations.py  # Endpoints de gestión de recomendaciones
+│   ├── schemas/
+│   │   ├── enums.py            # Enumeraciones (EventType, Result, etc.)
+│   │   ├── classroom.py        # Schemas Pydantic de aulas
+│   │   ├── event.py            # Schemas Pydantic de eventos
+│   │   └── recommendation.py   # Schemas Pydantic de recomendaciones
+│   └── services/              # Lógica de negocio (futuro)
+├── docs/
+│   └── database_structure.md   # Documentación de estructura de BD
+├── docker-compose.yml          # Configuración Docker (PostgreSQL + Adminer)
+└── requirements.txt           # Dependencias Python
+```
 
 ### Flujo de Funcionamiento
 
 ```
 1. REGISTRO DE EVENTO
-   └─> Docente registra evento anonimizado
-   └─> Sistema valida estructura y tipo
-   └─> Almacena en BD relacional (PostgreSQL)
+   └─> Docente registra evento anonimizado vía POST /events/
+   └─> FastAPI valida datos con Pydantic (schemas)
+   └─> Router valida que el classroom_id existe
+   └─> Se crea objeto Event (SQLAlchemy)
+   └─> Se almacena en PostgreSQL
+   └─> Se devuelve EventResponse (JSON)
 
-2. PROCESAMIENTO PERIÓDICO (ej: diario/nocturno)
+2. PROCESAMIENTO PERIÓDICO (ej: diario/nocturno) [FUTURO]
    └─> Sistema analiza eventos históricos del aula
    └─> Genera embeddings semánticos de eventos similares
    └─> Identifica patrones recurrentes (clustering)
    └─> Detecta correlaciones temporales (día/hora)
    └─> Analiza efectividad de apoyos utilizados
 
-3. GENERACIÓN DE RECOMENDACIONES
+3. GENERACIÓN DE RECOMENDACIONES [FUTURO]
    └─> Basado en patrones detectados
    └─> Considera contexto temporal y situacional
    └─> Prioriza recomendaciones con mayor evidencia histórica
-   └─> Almacena recomendaciones generadas
+   └─> Almacena recomendaciones generadas en PostgreSQL
 
 4. CONSULTA POR DOCENTE
-   └─> Docente solicita recomendaciones (bajo demanda)
-   └─> Sistema presenta recomendaciones más relevantes
-   └─> Docente puede filtrar por tipo o contexto
-   └─> Sistema registra qué recomendaciones se consultan (métricas)
+   └─> Docente solicita recomendaciones vía GET /recommendations/?classroom_id={id}
+   └─> Sistema consulta PostgreSQL
+   └─> Devuelve lista de recomendaciones ordenadas por relevancia
+   └─> Docente puede consultar detalles vía GET /recommendations/{id}
 
 5. RETROALIMENTACIÓN (opcional, futuro)
    └─> Docente puede marcar recomendaciones como útiles/no útiles
    └─> Sistema ajusta priorización (sin modificar recomendaciones existentes)
 ```
 
-### Diagrama de Arquitectura
+### Diagrama de Arquitectura Actual
 
 ```
 ┌─────────────────┐
 │   Docente       │
 │   (API Client)  │
+│   Swagger UI    │
 └────────┬────────┘
          │
-         │ HTTP/REST
+         │ HTTP/REST (FastAPI)
          │
 ┌────────▼─────────────────────────────────────┐
 │         Backend FastAPI                      │
 │  ┌──────────────────────────────────────┐   │
-│  │  Routers:                             │   │
-│  │  - /eventos (registro)                │   │
-│  │  - /aulas (gestión)                   │   │
-│  │  - /recomendaciones (consulta)        │   │
+│  │  Routers (app/routers/):              │   │
+│  │  - /classrooms (5 endpoints)          │   │
+│  │  - /events (5 endpoints)              │   │
+│  │  - /recommendations (3 endpoints)     │   │
 │  └──────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────┐   │
-│  │  Servicios:                           │   │
-│  │  - EventoService                      │   │
-│  │  - RecomendacionService               │   │
-│  │  - AnalisisPatronesService            │   │
+│  │  Schemas (app/schemas/):              │   │
+│  │  - Validación Pydantic                │   │
+│  │  - Conversión modelo ↔ schema         │   │
+│  └──────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────┐   │
+│  │  Models (app/models/):                │   │
+│  │  - SQLAlchemy ORM                     │   │
+│  │  - Relaciones y constraints           │   │
 │  └──────────────────────────────────────┘   │
 └────────┬─────────────────────────────────────┘
          │
@@ -178,9 +216,208 @@ El sistema registra eventos anonimizados del aula en cuatro categorías:
 │  PostgreSQL     │  │  Vector DB  │  │  LangGraph   │
 │  (Eventos,      │  │  (FAISS/    │  │  (Orquestación│
 │   Aulas,        │  │   Chroma)   │  │   IA)        │
-│   Recomend.)    │  │             │  │              │
+│   Recomend.)    │  │   [FUTURO]  │  │   [FUTURO]   │
 └─────────────────┘  └─────────────┘  └──────────────┘
 ```
+
+### Diagrama de Flujo de Datos
+
+```
+┌──────────────┐
+│   Cliente    │
+│  (HTTP/JSON) │
+└──────┬───────┘
+       │
+       │ 1. Request HTTP
+       ▼
+┌─────────────────────────────────┐
+│      FastAPI Router             │
+│  (app/routers/*.py)             │
+│  - Valida ruta y método         │
+│  - Extrae parámetros            │
+└──────┬──────────────────────────┘
+       │
+       │ 2. Valida con Pydantic
+       ▼
+┌─────────────────────────────────┐
+│   Pydantic Schema               │
+│  (app/schemas/*.py)             │
+│  - Valida tipos                  │
+│  - Valida enums                  │
+│  - Valida longitudes             │
+└──────┬──────────────────────────┘
+       │
+       │ 3. Si válido → Continúa
+       │    Si inválido → 422 Error
+       ▼
+┌─────────────────────────────────┐
+│   SQLAlchemy Model              │
+│  (app/models/models.py)         │
+│  - Crea/lee/actualiza/elimina    │
+│  - Maneja relaciones             │
+└──────┬──────────────────────────┘
+       │
+       │ 4. Query SQL
+       ▼
+┌─────────────────────────────────┐
+│      PostgreSQL                  │
+│  - Almacena datos                │
+│  - Mantiene integridad           │
+└──────┬──────────────────────────┘
+       │
+       │ 5. Resultado
+       ▼
+┌─────────────────────────────────┐
+│   Conversión a Schema            │
+│  - Model → Pydantic Schema      │
+│  - Enums, fechas, etc.          │
+└──────┬──────────────────────────┘
+       │
+       │ 6. Response JSON
+       ▼
+┌──────────────┐
+│   Cliente    │
+│  (HTTP/JSON) │
+└──────────────┘
+```
+
+### API Endpoints Implementados
+
+#### Classrooms (`/classrooms`)
+
+| Método | Ruta | Descripción | Status Code |
+|--------|------|-------------|-------------|
+| `GET` | `/classrooms/` | Lista todas las aulas del sistema | 200 |
+| `GET` | `/classrooms/{id}` | Obtiene un aula específica por ID | 200 / 404 |
+| `POST` | `/classrooms/` | Crea una nueva aula | 201 / 422 |
+| `PUT` | `/classrooms/{id}` | Actualiza un aula (campos opcionales) | 200 / 404 |
+| `DELETE` | `/classrooms/{id}` | Elimina un aula y sus eventos/recomendaciones | 204 / 404 |
+
+**Ejemplo de uso:**
+```bash
+# Crear aula
+POST /classrooms/
+{
+  "name": "Aula TEA 1",
+  "type": "TEA"
+}
+
+# Listar todas las aulas
+GET /classrooms/
+
+# Obtener aula específica
+GET /classrooms/{uuid}
+```
+
+#### Events (`/events`)
+
+| Método | Ruta | Descripción | Status Code |
+|--------|------|-------------|-------------|
+| `GET` | `/events/?classroom_id={id}` | Lista eventos de un aula específica | 200 / 404 |
+| `GET` | `/events/{id}` | Obtiene un evento específico por ID | 200 / 404 |
+| `POST` | `/events/` | Crea un nuevo evento pedagógico | 201 / 422 / 404 |
+| `PUT` | `/events/{id}` | Actualiza un evento (campos opcionales) | 200 / 404 |
+| `DELETE` | `/events/{id}` | Elimina un evento | 204 / 404 |
+
+**Ejemplo de uso:**
+```bash
+# Crear evento
+POST /events/
+{
+  "classroom_id": "uuid-del-aula",
+  "event_type": "TRANSICION",
+  "description": "Transición de juego libre a asamblea",
+  "context": {
+    "moment_of_day": "mañana",
+    "day_of_week": "lunes",
+    "duration_minutes": 5
+  },
+  "supports": ["Anticipación visual", "Mediación verbal"],
+  "result": "EXITOSO"
+}
+
+# Listar eventos de un aula
+GET /events/?classroom_id={uuid}
+
+# Actualizar solo el resultado
+PUT /events/{uuid}
+{
+  "result": "PARCIAL"
+}
+```
+
+#### Recommendations (`/recommendations`)
+
+| Método | Ruta | Descripción | Status Code |
+|--------|------|-------------|-------------|
+| `GET` | `/recommendations/?classroom_id={id}` | Lista recomendaciones de un aula | 200 / 404 |
+| `GET` | `/recommendations/{id}` | Obtiene una recomendación específica por ID | 200 / 404 |
+| `POST` | `/recommendations/` | Crea una recomendación (útil para testing) | 201 / 422 / 404 |
+
+**Nota:** En producción, las recomendaciones se generan automáticamente. El POST es útil para desarrollo y testing.
+
+**Ejemplo de uso:**
+```bash
+# Listar recomendaciones de un aula
+GET /recommendations/?classroom_id={uuid}
+
+# Obtener recomendación específica
+GET /recommendations/{uuid}
+```
+
+### Principios de Diseño Aplicados
+
+#### SOLID
+- **Single Responsibility**: Cada router maneja un solo recurso
+- **Open/Closed**: Fácil añadir nuevos endpoints sin modificar existentes
+- **Dependency Inversion**: Dependemos de abstracciones (schemas, models)
+
+#### KISS (Keep It Simple, Stupid)
+- Un archivo por recurso
+- Lógica clara y directa
+- Sin complejidad innecesaria
+
+#### Separación de Responsabilidades
+- **Routers**: Manejan HTTP, validan entrada, llaman a servicios
+- **Schemas**: Validan y estructuran datos
+- **Models**: Acceso a base de datos
+- **Services**: Lógica de negocio (futuro)
+
+### Validación y Manejo de Errores
+
+#### Validación Automática (Pydantic)
+- Tipos de datos (string, int, UUID, enum)
+- Longitudes mínimas/máximas
+- Valores obligatorios vs opcionales
+- Enums con valores permitidos
+- **Código de error**: 422 Unprocessable Entity
+
+#### Errores Personalizados
+- **404 Not Found**: Recurso no existe (aula, evento, recomendación)
+- **422 Validation Error**: Datos inválidos (Pydantic)
+- **500 Internal Server Error**: Error del servidor (capturado automáticamente)
+
+### Acceso a Base de Datos
+
+#### Dependency Injection
+```python
+async def endpoint(db: AsyncSession = Depends(get_db)):
+    # db es la sesión de base de datos
+    # Se cierra automáticamente al terminar
+```
+
+#### Transacciones
+- Cada request tiene su propia sesión
+- `commit()` guarda cambios
+- `refresh()` recarga objeto desde BD
+- Rollback automático en caso de error
+
+### Documentación Automática
+
+FastAPI genera automáticamente:
+- **Swagger UI**: `http://localhost:8000/docs` (interactivo)
+- **ReDoc**: `http://localhost:8000/redoc` (documentación alternativa)
+- Incluye todos los endpoints, schemas, y ejemplos
 
 ## Protección de Datos y Privacidad
 
@@ -193,11 +430,149 @@ El sistema registra eventos anonimizados del aula en cuatro categorías:
 ## Uso en el Aula
 
 1. El docente registra eventos pedagógicos anonimizados cuando ocurren o se planifican
-2. El sistema procesa eventos históricos periódicamente para identificar patrones
+2. El sistema procesa eventos históricos periódicamente para identificar patrones (futuro)
 3. El docente solicita recomendaciones bajo demanda cuando las necesita
 4. El docente aplica las recomendaciones que considere apropiadas
 5. El docente puede generar resúmenes interpretados para las familias
 6. Los patrones se acumulan y ajustan gradualmente, manteniendo historial del aula sin identificar alumnos
+
+## Inicio Rápido
+
+### Requisitos Previos
+
+- Python 3.11+
+- Docker y Docker Compose
+- Git
+
+### Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone <repository-url>
+   cd AULA_backend
+   ```
+
+2. **Crear entorno virtual**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # En Windows: venv\Scripts\activate
+   ```
+
+3. **Instalar dependencias**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configurar variables de entorno**
+   Crear archivo `.env`:
+   ```env
+   POSTGRES_USER=aulaplus
+   POSTGRES_PASSWORD=dev_password_2024
+   POSTGRES_DB=aulaplus_db
+   POSTGRES_HOST=localhost
+   POSTGRES_PORT=5432
+   ```
+
+5. **Levantar servicios con Docker**
+   ```bash
+   docker-compose up -d
+   ```
+
+6. **Inicializar base de datos**
+   ```bash
+   python -m app.models.init_db
+   ```
+
+7. **Iniciar servidor FastAPI**
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+### Acceso a la API
+
+- **API Base**: `http://localhost:8000`
+- **Documentación Swagger**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+- **Adminer (BD)**: `http://localhost:8080`
+
+### Probar los Endpoints
+
+#### Opción 1: Swagger UI (Recomendado)
+
+1. Abre `http://localhost:8000/docs` en tu navegador
+2. Expande cualquier endpoint
+3. Haz clic en "Try it out"
+4. Rellena los datos necesarios
+5. Haz clic en "Execute"
+6. Verás la respuesta
+
+#### Opción 2: curl
+
+```bash
+# Listar aulas
+curl http://localhost:8000/classrooms/
+
+# Crear aula
+curl -X POST http://localhost:8000/classrooms/ \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Aula TEA 1", "type": "TEA"}'
+
+# Listar eventos de un aula
+curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
+```
+
+### Flujo de Prueba Completo
+
+1. **Crear un aula**
+   ```bash
+   POST /classrooms/
+   {
+     "name": "Aula TEA 1",
+     "type": "TEA"
+   }
+   ```
+   Copia el `id` de la respuesta.
+
+2. **Crear un evento**
+   ```bash
+   POST /events/
+   {
+     "classroom_id": "id-del-paso-1",
+     "event_type": "TRANSICION",
+     "description": "Transición de juego libre a asamblea matutina",
+     "context": {
+       "moment_of_day": "mañana",
+       "day_of_week": "lunes",
+       "duration_minutes": 5
+     },
+     "supports": ["Anticipación visual"],
+     "result": "EXITOSO"
+   }
+   ```
+
+3. **Listar eventos del aula**
+   ```bash
+   GET /events/?classroom_id=id-del-paso-1
+   ```
+
+4. **Crear una recomendación**
+   ```bash
+   POST /recommendations/
+   {
+     "classroom_id": "id-del-paso-1",
+     "recommendation_type": "ANTICIPACION",
+     "title": "Anticipar cambios de rutina",
+     "description": "Recomendación basada en patrones observados...",
+     "applicable_context": "Aplicar en cambios de rutina",
+     "detected_pattern": "Patrón detectado en eventos similares",
+     "confidence": "ALTA"
+   }
+   ```
+
+5. **Listar recomendaciones**
+   ```bash
+   GET /recommendations/?classroom_id=id-del-paso-1
+   ```
 
 ## Beneficios Sociales
 
@@ -207,31 +582,39 @@ El sistema registra eventos anonimizados del aula en cuatro categorías:
 - Escalable: de un piloto a cientos de aulas, manteniendo costes controlados
 - Cada aula aprende de su propia experiencia histórica
 
-## Roadmap Inicial
+## Roadmap y Estado del Proyecto
 
-### Fase 1: Fundamentos (Semana 1-2)
-- Estructura de base de datos (PostgreSQL)
-- Backend FastAPI con endpoints básicos
-- Modelos de datos (Evento, Aula, Recomendación)
-- Validación de esquemas
+### ✅ Fase 1: Fundamentos (COMPLETADA)
+- ✅ Estructura de base de datos (PostgreSQL)
+- ✅ Backend FastAPI con 13 endpoints funcionales
+- ✅ Modelos de datos (Classroom, Event, Recommendation)
+- ✅ Validación de esquemas Pydantic
+- ✅ Relaciones entre tablas configuradas
+- ✅ Adminer configurado para visualización de BD
+- ✅ Documentación de estructura de BD
 
-### Fase 2: Análisis de Patrones (Semana 3-4)
-- Integración de embeddings semánticos
-- Vector DB (FAISS o Chroma)
-- Servicio de análisis de patrones
-- Detección de correlaciones temporales
+**Endpoints implementados:**
+- 5 endpoints de Classrooms (CRUD completo)
+- 5 endpoints de Events (CRUD completo)
+- 3 endpoints de Recommendations (GET list, GET by ID, POST)
 
-### Fase 3: Recomendaciones (Semana 5-6)
-- Integración de LangGraph para orquestación IA
-- Generación de recomendaciones basadas en patrones
-- Sistema de priorización y confianza
-- Endpoints de consulta bajo demanda
+### 🔄 Fase 2: Análisis de Patrones (EN PROGRESO)
+- ⏳ Integración de embeddings semánticos
+- ⏳ Vector DB (FAISS o Chroma)
+- ⏳ Servicio de análisis de patrones
+- ⏳ Detección de correlaciones temporales
 
-### Fase 4: Validación y Despliegue (Semana 7-8)
-- Sistema de feedback del docente
-- Contenedores Docker
-- Despliegue en nube
-- Prueba piloto con datos reales (anonimizados)
+### ⏳ Fase 3: Recomendaciones Automáticas (PENDIENTE)
+- ⏳ Integración de LangGraph para orquestación IA
+- ⏳ Generación automática de recomendaciones basadas en patrones
+- ⏳ Sistema de priorización y confianza mejorado
+- ⏳ Procesamiento periódico de eventos
+
+### ⏳ Fase 4: Validación y Despliegue (PENDIENTE)
+- ⏳ Sistema de feedback del docente
+- ⏳ Optimización de contenedores Docker
+- ⏳ Despliegue en nube
+- ⏳ Prueba piloto con datos reales (anonimizados)
 
 ## Limitaciones Actuales
 
