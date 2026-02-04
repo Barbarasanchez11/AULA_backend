@@ -58,6 +58,21 @@ async def list_events(
     # Convert models to response schemas
     return [event_model_to_response(event) for event in events]
 
+@router.get("/{id}", response_model=EventResponse)
+async def get_event(id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Get a specific event by ID.
+    
+    Returns the event details if found, or 404 if not found.
+    """
+    result = await db.execute(select(Event).where(Event.id == id))
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    return event_model_to_response(event)
+
 @router.post("/", response_model=EventResponse, status_code=201)
 async def create_event(event: EventCreate, db: AsyncSession = Depends(get_db)):
     """
