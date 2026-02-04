@@ -128,6 +128,25 @@ async def update_event(id: UUID, event_update: EventUpdate, db: AsyncSession = D
     
     return event_model_to_response(db_event)
 
+@router.delete("/{id}", status_code=204)
+async def delete_event(id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Delete an event by ID.
+    
+    Deletes the event from the database.
+    Returns 204 No Content if successful, or 404 if not found.
+    """
+    result = await db.execute(select(Event).where(Event.id == id))
+    db_event = result.scalar_one_or_none()
+    
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    await db.delete(db_event)
+    await db.commit()
+    
+    return None
+
 @router.post("/", response_model=EventResponse, status_code=201)
 async def create_event(event: EventCreate, db: AsyncSession = Depends(get_db)):
     """
