@@ -6,7 +6,7 @@ from uuid import UUID
 
 from app.models.database import get_db
 from app.models.models import Classroom
-from app.schemas.classroom import ClassroomResponse, ClassroomCreate
+from app.schemas.classroom import ClassroomResponse, ClassroomCreate, ClassroomUpdate
 
 router = APIRouter(
     prefix="/classrooms",
@@ -53,6 +53,30 @@ async def create_classroom(classroom: ClassroomCreate, db: AsyncSession = Depend
     )
     
     db.add(db_classroom)
+    await db.commit()
+    await db.refresh(db_classroom)
+    
+    return db_classroom
+
+@router.put("/{id}", response_model=ClassroomResponse)
+async def update_classroom(id: UUID, classroom_update: ClassroomUpdate, db: AsyncSession = Depends(get_db)):
+    """
+    Update a classroom by ID.
+    
+    Updates only the provided fields and returns the updated classroom.
+    Returns 404 if the classroom is not found.
+    """
+    result = await db.execute(select(Classroom).where(Classroom.id == id))
+    db_classroom = result.scalar_one_or_none()
+    
+    if not db_classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    # Update only the fields that were provided
+    update_data = classroom_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_classroom, field, value)
+    
     await db.commit()
     await db.refresh(db_classroom)
     

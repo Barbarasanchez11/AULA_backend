@@ -11,6 +11,11 @@ class ClassroomBase(BaseModel):
 class ClassroomCreate(ClassroomBase):
     pass
 
+class ClassroomUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=3, max_length=100)
+    type: Optional[str] = Field(None, max_length=50)
+    extra_metadata: Optional[Dict[str, Any]] = None
+
 class ClassroomResponse(ClassroomBase):
     id: UUID
     created_at: datetime
