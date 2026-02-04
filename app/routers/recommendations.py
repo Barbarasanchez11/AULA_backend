@@ -6,7 +6,7 @@ from typing import List
 
 from app.models.database import get_db
 from app.models.models import Recommendation, Classroom
-from app.schemas.recommendation import RecommendationResponse
+from app.schemas.recommendation import RecommendationResponse, RecommendationCreate
 from app.schemas.enums import RecommendationType, ConfidenceLevel
 
 router = APIRouter(
@@ -67,4 +67,40 @@ async def get_recommendation(id: UUID, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Recommendation not found")
     
     return recommendation_model_to_response(recommendation)
+
+@router.post("/", response_model=RecommendationResponse, status_code=201)
+async def create_recommendation(recommendation: RecommendationCreate, db: AsyncSession = Depends(get_db)):
+    """
+    Create a new recommendation.
+    
+    Creates a new pedagogical recommendation for a classroom.
+    Validates that the classroom exists before creating the recommendation.
+    
+    Note: In production, recommendations are generated automatically by the system.
+    This endpoint is useful for testing and manual creation during development.
+    """
+    # Validate that the classroom exists
+    result = await db.execute(select(Classroom).where(Classroom.id == recommendation.classroom_id))
+    classroom = result.scalar_one_or_none()
+    
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    # Create recommendation from schema
+    db_recommendation = Recommendation(
+        classroom_id=recommendation.classroom_id,
+        recommendation_type=recommendation.recommendation_type.value,
+        title=recommendation.title,
+        description=recommendation.description,
+        applicable_context=recommendation.applicable_context,
+        detected_pattern=recommendation.detected_pattern,
+        confidence=recommendation.confidence.value
+    )
+    
+    db.add(db_recommendation)
+    await db.commit()
+    await db.refresh(db_recommendation)
+    
+    # Convert model to response schema
+    return recommendation_model_to_response(db_recommendation)
 
