@@ -53,3 +53,18 @@ async def list_recommendations(
     # Convert models to response schemas
     return [recommendation_model_to_response(rec) for rec in recommendations]
 
+@router.get("/{id}", response_model=RecommendationResponse)
+async def get_recommendation(id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Get a specific recommendation by ID.
+    
+    Returns the recommendation details if found, or 404 if not found.
+    """
+    result = await db.execute(select(Recommendation).where(Recommendation.id == id))
+    recommendation = result.scalar_one_or_none()
+    
+    if not recommendation:
+        raise HTTPException(status_code=404, detail="Recommendation not found")
+    
+    return recommendation_model_to_response(recommendation)
+
