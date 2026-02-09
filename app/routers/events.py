@@ -60,22 +60,6 @@ async def list_events(
     # Convert models to response schemas
     return [event_model_to_response(event) for event in events]
 
-@router.get("/{id}", response_model=EventResponse)
-async def get_event(id: UUID, db: AsyncSession = Depends(get_db)):
-    """
-    Get a specific event by ID.
-    
-    Returns the event details if found, or 404 if not found.
-    """
-    result = await db.execute(select(Event).where(Event.id == id))
-    event = result.scalar_one_or_none()
-    
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    
-    return event_model_to_response(event)
-
-
 @router.get("/similar", response_model=List[SimilarEventResponse])
 async def get_similar_events(
     event_id: UUID = Query(..., description="ID of the event to find similar events for"),
@@ -195,6 +179,22 @@ async def get_similar_events(
             status_code=500,
             detail=f"Error searching for similar events: {str(e)}"
         )
+
+
+@router.get("/{id}", response_model=EventResponse)
+async def get_event(id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Get a specific event by ID.
+    
+    Returns the event details if found, or 404 if not found.
+    """
+    result = await db.execute(select(Event).where(Event.id == id))
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    return event_model_to_response(event)
 
 
 @router.put("/{id}", response_model=EventResponse)
