@@ -1,7 +1,5 @@
 # Flujo de IA - AULA+ Backend
 
-**Fecha**: 9 de febrero de 2026  
-**Estado**: Documentación del flujo actual (sin LangGraph)
 
 ---
 
@@ -593,6 +591,4 @@ GENERACIÓN SOLICITADA
 
 ---
 
-**Última actualización**: 9 de febrero de 2026  
-**Autor**: Equipo de desarrollo AULA+
 
