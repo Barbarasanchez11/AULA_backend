@@ -6,10 +6,11 @@ from typing import List, Optional
 
 from app.models.database import get_db
 from app.models.models import Event, Classroom
-from app.schemas.event import EventCreate, EventResponse, EventContext, EventUpdate, SimilarEventResponse
+from app.schemas.event import EventCreate, EventResponse, EventContext, EventUpdate, SimilarEventResponse, PatternAnalysisResponse
 from app.schemas.enums import EventType, EventResult, MomentOfDay, DayOfWeek, SupportType
 from app.services.embeddingService import EmbeddingService
 from app.services.vector_store import VectorStore
+from app.services.pattern_analysis import PatternAnalysisService
 
 router = APIRouter(
     prefix="/events",
@@ -59,6 +60,71 @@ async def list_events(
     
     # Convert models to response schemas
     return [event_model_to_response(event) for event in events]
+
+
+@router.get("/patterns", response_model=PatternAnalysisResponse)
+async def analyze_patterns(
+    classroom_id: UUID = Query(..., description="ID of the classroom to analyze"),
+    clustering_eps: float = Query(0.3, ge=0.0, le=1.0, description="DBSCAN eps parameter (0.0-1.0)"),
+    clustering_min_samples: int = Query(2, ge=2, description="DBSCAN min_samples parameter"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Analyze patterns in classroom events.
+    
+    Performs three types of analysis:
+    - Clustering: Groups similar events using semantic similarity
+    - Temporal patterns: Detects day of week and moment of day patterns
+    - Support effectiveness: Analyzes which supports work best
+    
+    Returns comprehensive pattern analysis results.
+    """
+    # Validate that the classroom exists
+    result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
+    classroom = result.scalar_one_or_none()
+    
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    # Get all events for this classroom
+    result = await db.execute(select(Event).where(Event.classroom_id == classroom_id))
+    events = result.scalars().all()
+    
+    if not events:
+        raise HTTPException(
+            status_code=404,
+            detail="No events found for this classroom. Create some events first."
+        )
+    
+    try:
+        # Initialize pattern analysis service
+        pattern_service = PatternAnalysisService()
+        
+        # Perform analysis
+        analysis_results = pattern_service.analyze_all_patterns(
+            classroom_id=classroom_id,
+            events=events,
+            clustering_eps=clustering_eps,
+            clustering_min_samples=clustering_min_samples
+        )
+        
+        return PatternAnalysisResponse(
+            clustering=analysis_results.get("clustering", {}),
+            temporal_patterns=analysis_results.get("temporal_patterns", {}),
+            support_effectiveness=analysis_results.get("support_effectiveness", {})
+        )
+    
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Pattern analysis service not available: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error analyzing patterns: {str(e)}"
+        )
+
 
 @router.get("/similar", response_model=List[SimilarEventResponse])
 async def get_similar_events(

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from uuid import UUID
-from typing import Optional, List
+from typing import Optional, List, Dict
 from .enums import (
     EventType,
     EventResult,
@@ -80,6 +80,16 @@ class SimilarEventResponse(BaseModel):
     """Esquema de respuesta para eventos similares"""
     event: EventResponse = Field(..., description="Evento similar encontrado")
     similarity_score: float = Field(..., ge=0.0, le=1.0, description="Score de similitud (0.0 a 1.0)")
+    
+    class Config:
+        from_attributes = True
+
+
+class PatternAnalysisResponse(BaseModel):
+    """Esquema de respuesta para análisis de patrones"""
+    clustering: Dict = Field(..., description="Resultados del clustering de eventos similares")
+    temporal_patterns: Dict = Field(..., description="Patrones temporales detectados")
+    support_effectiveness: Dict = Field(..., description="Análisis de efectividad de apoyos")
     
     class Config:
         from_attributes = True
