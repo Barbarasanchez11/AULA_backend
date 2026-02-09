@@ -645,6 +645,17 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 - Las recomendaciones son sugerencias, no prescripciones
 - El sistema aprende de patrones históricos, no de literatura clínica
 
+## Documentación
+
+Documentación técnica detallada disponible en `docs/`:
+
+- **[Arquitectura Técnica](docs/architecture.md)**: Estructura del sistema, tecnologías y decisiones de diseño
+- **[Implementación de Embeddings](docs/embeddings_implementation.md)**: Sistema híbrido de embeddings, lazy loading y vector store
+- **[Análisis de Patrones y Recomendaciones](docs/phase3_pattern_analysis.md)**: Servicios de análisis de patrones y generación de recomendaciones
+- **[Flujo de IA](docs/ai_workflow.md)**: Flujo completo del sistema desde eventos hasta recomendaciones
+- **[Protección de Datos](docs/privacy_and_data_protection.md)**: Medidas de privacidad y cumplimiento RGPD
+- **[Requisitos de Ciberseguridad](docs/cybersecurity_requirements.md)**: Plan de ciberseguridad y PII scanner
+
 ## Contribuciones y Contacto
 
 Este proyecto está en desarrollo activo. Para contribuciones o consultas, contactar con el equipo de desarrollo.
