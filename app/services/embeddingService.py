@@ -66,16 +66,66 @@ class EmbeddingService:
         Load the fast embedding model (distiluse-base-multilingual-cased-v2).
         
         This method uses lazy loading - the model is only loaded when first needed.
+        If the model is already loaded, this method does nothing.
+        
+        Raises:
+            ImportError: If sentence_transformers is not installed.
+            Exception: If the model cannot be loaded.
         """
-        raise NotImplementedError("_load_fast_model() will be implemented in next subtask")
+        # Check if already loaded
+        if EmbeddingService._fast_model_loaded:
+            return
+        
+        # Check if SentenceTransformer is available
+        if SentenceTransformer is None:
+            raise ImportError(
+                "sentence-transformers no está instalado. "
+                "Instálalo con: pip install sentence-transformers"
+            )
+        
+        try:
+            # Load the fast model
+            model_name = "distiluse-base-multilingual-cased-v2"
+            EmbeddingService._fast_model = SentenceTransformer(model_name)
+            EmbeddingService._fast_model_loaded = True
+        except Exception as e:
+            raise Exception(
+                f"Error al cargar el modelo rápido '{model_name}': {str(e)}. "
+                "Asegúrate de tener conexión a internet para descargar el modelo."
+            ) from e
     
     def _load_quality_model(self) -> None:
         """
         Load the quality embedding model (paraphrase-multilingual-mpnet-base-v2).
         
         This method uses lazy loading - the model is only loaded when first needed.
+        If the model is already loaded, this method does nothing.
+        
+        Raises:
+            ImportError: If sentence_transformers is not installed.
+            Exception: If the model cannot be loaded.
         """
-        raise NotImplementedError("_load_quality_model() will be implemented in next subtask")
+        # Check if already loaded
+        if EmbeddingService._quality_model_loaded:
+            return
+        
+        # Check if SentenceTransformer is available
+        if SentenceTransformer is None:
+            raise ImportError(
+                "sentence-transformers no está instalado. "
+                "Instálalo con: pip install sentence-transformers"
+            )
+        
+        try:
+            # Load the quality model
+            model_name = "paraphrase-multilingual-mpnet-base-v2"
+            EmbeddingService._quality_model = SentenceTransformer(model_name)
+            EmbeddingService._quality_model_loaded = True
+        except Exception as e:
+            raise Exception(
+                f"Error al cargar el modelo de calidad '{model_name}': {str(e)}. "
+                "Asegúrate de tener conexión a internet para descargar el modelo."
+            ) from e
     
     def combine_event_text(
         self,
