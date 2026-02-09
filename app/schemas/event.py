@@ -74,3 +74,12 @@ class EventResponse(EventBase):
     
     class Config:
         from_attributes = True
+
+
+class SimilarEventResponse(BaseModel):
+    """Esquema de respuesta para eventos similares"""
+    event: EventResponse = Field(..., description="Evento similar encontrado")
+    similarity_score: float = Field(..., ge=0.0, le=1.0, description="Score de similitud (0.0 a 1.0)")
+    
+    class Config:
+        from_attributes = True

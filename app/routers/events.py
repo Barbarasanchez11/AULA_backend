@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
 from app.models.database import get_db
 from app.models.models import Event, Classroom
-from app.schemas.event import EventCreate, EventResponse, EventContext, EventUpdate
+from app.schemas.event import EventCreate, EventResponse, EventContext, EventUpdate, SimilarEventResponse
 from app.schemas.enums import EventType, EventResult, MomentOfDay, DayOfWeek, SupportType
 from app.services.embeddingService import EmbeddingService
 from app.services.vector_store import VectorStore
@@ -74,6 +74,128 @@ async def get_event(id: UUID, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Event not found")
     
     return event_model_to_response(event)
+
+
+@router.get("/similar", response_model=List[SimilarEventResponse])
+async def get_similar_events(
+    event_id: UUID = Query(..., description="ID of the event to find similar events for"),
+    classroom_id: UUID = Query(..., description="ID of the classroom"),
+    top_k: int = Query(5, ge=1, le=20, description="Number of similar events to return (1-20)"),
+    model_type: str = Query("quality", regex="^(fast|quality)$", description="Model to use for search (fast or quality)"),
+    min_similarity: float = Query(0.0, ge=0.0, le=1.0, description="Minimum similarity score (0.0 to 1.0)"),
+    event_type_filter: Optional[str] = Query(None, description="Filter by event type (optional)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Find similar events using semantic search.
+    
+    Given an event ID, generates its embedding and searches for similar events
+    in the same classroom using vector similarity.
+    
+    Returns a list of similar events ordered by similarity score (highest first).
+    """
+    # Validate that the classroom exists
+    result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
+    classroom = result.scalar_one_or_none()
+    
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    # Get the source event
+    result = await db.execute(select(Event).where(Event.id == event_id))
+    source_event = result.scalar_one_or_none()
+    
+    if not source_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Verify event belongs to the classroom
+    if source_event.classroom_id != classroom_id:
+        raise HTTPException(status_code=400, detail="Event does not belong to the specified classroom")
+    
+    try:
+        # Get services
+        embedding_service = EmbeddingService.get_instance()
+        vector_store = VectorStore()
+        
+        # Generate embedding for the source event
+        query_embedding = embedding_service.generate_event_embedding(
+            event_type=source_event.event_type,
+            description=source_event.description,
+            moment_of_day=source_event.moment_of_day,
+            day_of_week=source_event.day_of_week,
+            supports=source_event.supports,
+            result=source_event.result,
+            additional_supports=source_event.additional_supports,
+            observations=source_event.observations,
+            model_type=model_type
+        )
+        
+        # Prepare filters
+        search_filters = None
+        if event_type_filter:
+            search_filters = {"event_type": event_type_filter}
+        
+        # Add model_type filter to search in the correct collection
+        if search_filters:
+            search_filters["model_type"] = model_type
+        else:
+            search_filters = {"model_type": model_type}
+        
+        # Search for similar events
+        similar_results = vector_store.search_similar_events(
+            classroom_id=classroom_id,
+            query_embedding=query_embedding,
+            top_k=top_k + 1,  # +1 because we'll filter out the source event
+            filters=search_filters,
+            min_similarity=min_similarity
+        )
+        
+        # Get full event details from database
+        similar_events = []
+        for result_item in similar_results:
+            # Extract original event_id from metadata
+            original_event_id_str = result_item["metadata"].get("original_event_id")
+            if not original_event_id_str:
+                # Fallback: try to parse from the stored event_id
+                stored_id = result_item["metadata"].get("event_id", "")
+                # Remove _fast or _quality suffix if present
+                original_event_id_str = stored_id.replace("_fast", "").replace("_quality", "")
+            
+            try:
+                similar_event_id = UUID(original_event_id_str)
+                
+                # Skip if it's the source event itself
+                if similar_event_id == event_id:
+                    continue
+                
+                # Get event from database
+                result = await db.execute(select(Event).where(Event.id == similar_event_id))
+                similar_event = result.scalar_one_or_none()
+                
+                if similar_event:
+                    similar_events.append(SimilarEventResponse(
+                        event=event_model_to_response(similar_event),
+                        similarity_score=result_item["score"]
+                    ))
+            except (ValueError, TypeError):
+                # Skip invalid UUIDs
+                continue
+        
+        # Sort by similarity score (highest first) and limit to top_k
+        similar_events.sort(key=lambda x: x.similarity_score, reverse=True)
+        return similar_events[:top_k]
+        
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail="Embedding service not available. Ensure sentence-transformers and chromadb are installed."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error searching for similar events: {str(e)}"
+        )
+
 
 @router.put("/{id}", response_model=EventResponse)
 async def update_event(
