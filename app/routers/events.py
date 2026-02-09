@@ -76,11 +76,17 @@ async def get_event(id: UUID, db: AsyncSession = Depends(get_db)):
     return event_model_to_response(event)
 
 @router.put("/{id}", response_model=EventResponse)
-async def update_event(id: UUID, event_update: EventUpdate, db: AsyncSession = Depends(get_db)):
+async def update_event(
+    id: UUID,
+    event_update: EventUpdate,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
+):
     """
     Update an event by ID.
     
     Updates only the provided fields and returns the updated event.
+    If fields that affect embeddings are updated, embeddings are regenerated.
     Returns 404 if the event is not found.
     """
     result = await db.execute(select(Event).where(Event.id == id))
@@ -88,6 +94,9 @@ async def update_event(id: UUID, event_update: EventUpdate, db: AsyncSession = D
     
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Track if embedding-relevant fields were updated
+    embedding_fields_updated = False
     
     # Update only the fields that were provided
     update_data = event_update.model_dump(exclude_unset=True)
@@ -98,20 +107,25 @@ async def update_event(id: UUID, event_update: EventUpdate, db: AsyncSession = D
         if context_data.get("moment_of_day") is not None:
             moment = context_data["moment_of_day"]
             db_event.moment_of_day = moment.value if isinstance(moment, MomentOfDay) else moment
+            embedding_fields_updated = True
         if context_data.get("day_of_week") is not None:
             day = context_data["day_of_week"]
             db_event.day_of_week = day.value if isinstance(day, DayOfWeek) else day
+            embedding_fields_updated = True
         if context_data.get("duration_minutes") is not None:
             db_event.duration_minutes = context_data["duration_minutes"]
+            # duration_minutes doesn't affect embedding, so no flag update
     
     # Handle enum fields
     if "event_type" in update_data and update_data["event_type"] is not None:
         event_type = update_data.pop("event_type")
         db_event.event_type = event_type.value if isinstance(event_type, EventType) else event_type
+        embedding_fields_updated = True
     
     if "result" in update_data and update_data["result"] is not None:
         result = update_data.pop("result")
         db_event.result = result.value if isinstance(result, EventResult) else result
+        embedding_fields_updated = True
     
     if "supports" in update_data and update_data["supports"] is not None:
         supports = update_data.pop("supports")
@@ -119,8 +133,16 @@ async def update_event(id: UUID, event_update: EventUpdate, db: AsyncSession = D
             support.value if isinstance(support, SupportType) else support 
             for support in supports
         ]
+        embedding_fields_updated = True
     
     # Update remaining fields
+    if "description" in update_data and update_data["description"] is not None:
+        embedding_fields_updated = True
+    if "additional_supports" in update_data and update_data["additional_supports"] is not None:
+        embedding_fields_updated = True
+    if "observations" in update_data and update_data["observations"] is not None:
+        embedding_fields_updated = True
+    
     for field, value in update_data.items():
         if value is not None:
             setattr(db_event, field, value)
@@ -128,14 +150,52 @@ async def update_event(id: UUID, event_update: EventUpdate, db: AsyncSession = D
     await db.commit()
     await db.refresh(db_event)
     
+    # Regenerate embeddings if embedding-relevant fields were updated
+    if embedding_fields_updated:
+        background_tasks.add_task(
+            _generate_and_store_embeddings,
+            event_id=db_event.id,
+            classroom_id=db_event.classroom_id,
+            event_type=db_event.event_type,
+            description=db_event.description,
+            moment_of_day=db_event.moment_of_day,
+            day_of_week=db_event.day_of_week,
+            supports=db_event.supports,
+            result=db_event.result,
+            additional_supports=db_event.additional_supports,
+            observations=db_event.observations
+        )
+    
     return event_model_to_response(db_event)
 
+def _delete_event_embeddings(classroom_id: UUID, event_id: UUID):
+    """
+    Background task to delete embeddings for an event.
+    
+    This function runs in the background after the HTTP response is sent.
+    """
+    try:
+        vector_store = VectorStore()
+        vector_store.delete_event_embedding(
+            classroom_id=classroom_id,
+            event_id=event_id,
+            delete_both_models=True
+        )
+    except Exception as e:
+        # Log error but don't fail the request
+        print(f"Error deleting embeddings for event {event_id}: {e}")
+
+
 @router.delete("/{id}", status_code=204)
-async def delete_event(id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_event(
+    id: UUID,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
+):
     """
     Delete an event by ID.
     
-    Deletes the event from the database.
+    Deletes the event from the database and removes its embeddings from the vector store.
     Returns 204 No Content if successful, or 404 if not found.
     """
     result = await db.execute(select(Event).where(Event.id == id))
@@ -144,8 +204,19 @@ async def delete_event(id: UUID, db: AsyncSession = Depends(get_db)):
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
     
+    # Store IDs before deletion
+    event_id = db_event.id
+    classroom_id = db_event.classroom_id
+    
     await db.delete(db_event)
     await db.commit()
+    
+    # Delete embeddings in background
+    background_tasks.add_task(
+        _delete_event_embeddings,
+        classroom_id=classroom_id,
+        event_id=event_id
+    )
     
     return None
 
