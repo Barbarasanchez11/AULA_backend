@@ -188,25 +188,71 @@ class EmbeddingService:
         """
         Generate embedding using the fast model (distiluse).
         
+        This method uses lazy loading - the model is loaded only when first needed.
+        
         Args:
             text: Text to generate embedding for
             
         Returns:
             np.ndarray: Embedding vector (512 dimensions)
+            
+        Raises:
+            ImportError: If sentence_transformers or numpy is not installed.
+            Exception: If the model cannot be loaded or encoding fails.
         """
-        raise NotImplementedError("generate_fast_embedding() will be implemented in next subtask")
+        # Ensure model is loaded (lazy loading)
+        self._load_fast_model()
+        
+        # Check if numpy is available
+        if np is None:
+            raise ImportError(
+                "numpy no está instalado. "
+                "Instálalo con: pip install numpy<2.0"
+            )
+        
+        # Generate embedding
+        try:
+            embedding = EmbeddingService._fast_model.encode(text)
+            return embedding
+        except Exception as e:
+            raise Exception(
+                f"Error al generar embedding con modelo rápido: {str(e)}"
+            ) from e
     
     def generate_quality_embedding(self, text: str):
         """
         Generate embedding using the quality model (mpnet).
+        
+        This method uses lazy loading - the model is loaded only when first needed.
         
         Args:
             text: Text to generate embedding for
             
         Returns:
             np.ndarray: Embedding vector (768 dimensions)
+            
+        Raises:
+            ImportError: If sentence_transformers or numpy is not installed.
+            Exception: If the model cannot be loaded or encoding fails.
         """
-        raise NotImplementedError("generate_quality_embedding() will be implemented in next subtask")
+        # Ensure model is loaded (lazy loading)
+        self._load_quality_model()
+        
+        # Check if numpy is available
+        if np is None:
+            raise ImportError(
+                "numpy no está instalado. "
+                "Instálalo con: pip install numpy<2.0"
+            )
+        
+        # Generate embedding
+        try:
+            embedding = EmbeddingService._quality_model.encode(text)
+            return embedding
+        except Exception as e:
+            raise Exception(
+                f"Error al generar embedding con modelo calidad: {str(e)}"
+            ) from e
     
     def generate_embeddings_batch(
         self,
@@ -216,14 +262,47 @@ class EmbeddingService:
         """
         Generate embeddings for multiple texts in batch (more efficient).
         
+        Batch processing is more efficient than processing texts one by one.
+        This method uses lazy loading - models are loaded only when first needed.
+        
         Args:
             texts: List of texts to generate embeddings for
             model_type: Which model to use ("fast" or "quality")
             
         Returns:
             np.ndarray: Array of embeddings (shape: [num_texts, embedding_dim])
+            
+        Raises:
+            ValueError: If texts list is empty.
+            ImportError: If sentence_transformers or numpy is not installed.
+            Exception: If the model cannot be loaded or encoding fails.
         """
-        raise NotImplementedError("generate_embeddings_batch() will be implemented in next subtask")
+        if not texts:
+            raise ValueError("La lista de textos no puede estar vacía")
+        
+        # Check if numpy is available
+        if np is None:
+            raise ImportError(
+                "numpy no está instalado. "
+                "Instálalo con: pip install numpy<2.0"
+            )
+        
+        # Select model based on model_type
+        if model_type == "fast":
+            self._load_fast_model()
+            model = EmbeddingService._fast_model
+        else:  # quality
+            self._load_quality_model()
+            model = EmbeddingService._quality_model
+        
+        # Generate embeddings in batch
+        try:
+            embeddings = model.encode(texts)
+            return embeddings
+        except Exception as e:
+            raise Exception(
+                f"Error al generar embeddings en batch con modelo {model_type}: {str(e)}"
+            ) from e
     
     def generate_event_embedding(
         self,
@@ -241,6 +320,8 @@ class EmbeddingService:
         High-level method to generate embedding for a complete event.
         
         This method combines the event text and generates the embedding in one call.
+        It's a convenience method that calls combine_event_text() and then
+        generate_fast_embedding() or generate_quality_embedding().
         
         Args:
             event_type: Type of the event
@@ -255,6 +336,26 @@ class EmbeddingService:
             
         Returns:
             np.ndarray: Embedding vector
+            
+        Raises:
+            ImportError: If sentence_transformers or numpy is not installed.
+            Exception: If the model cannot be loaded or encoding fails.
         """
-        raise NotImplementedError("generate_event_embedding() will be implemented in next subtask")
+        # Combine event fields into a single text
+        combined_text = self.combine_event_text(
+            event_type=event_type,
+            description=description,
+            moment_of_day=moment_of_day,
+            day_of_week=day_of_week,
+            supports=supports,
+            result=result,
+            additional_supports=additional_supports,
+            observations=observations
+        )
+        
+        # Generate embedding using the specified model
+        if model_type == "fast":
+            return self.generate_fast_embedding(combined_text)
+        else:  # quality
+            return self.generate_quality_embedding(combined_text)
 
