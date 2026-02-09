@@ -9,3 +9,8 @@ asyncpg
 python-dotenv
 httpx
 pytest
+# Dependencies for embeddings and ML
+sentence-transformers
+scikit-learn
+numpy<2.0  # NumPy 2.x is not compatible with sentence-transformers yet
+chromadb  # Vector database for storing and searching embeddings
