@@ -135,24 +135,54 @@ class EmbeddingService:
         day_of_week: Optional[str],
         supports: List[str],
         result: str,
+        additional_supports: Optional[str] = None,
         observations: Optional[str] = None
     ) -> str:
         """
         Combine all event fields into a single text string for embedding generation.
+        
+        This method creates a structured text representation that captures all semantic
+        information from the event, which is then used to generate embeddings.
         
         Args:
             event_type: Type of the event (e.g., "TRANSICION")
             description: Description of the event
             moment_of_day: Moment of day (e.g., "mañana")
             day_of_week: Day of week (optional, e.g., "lunes")
-            supports: List of supports used
+            supports: List of supports used (predefined supports)
             result: Result of the event (e.g., "EXITOSO")
+            additional_supports: Additional supports in free text (optional)
             observations: Optional observations
             
         Returns:
             str: Combined text representation of the event
         """
-        raise NotImplementedError("combine_event_text() will be implemented in next subtask")
+        # Start with event type and description (core information)
+        parts = [
+            f"{event_type}. {description}."
+        ]
+        
+        # Add temporal context
+        context_parts = [f"Momento: {moment_of_day}"]
+        if day_of_week:
+            context_parts.append(f"Día: {day_of_week}")
+        parts.append(" ".join(context_parts) + ".")
+        
+        # Add supports
+        supports_text = ", ".join(supports)
+        if additional_supports and additional_supports.strip():
+            supports_text += f". {additional_supports.strip()}"
+        parts.append(f"Apoyos utilizados: {supports_text}.")
+        
+        # Add result
+        parts.append(f"Resultado: {result}.")
+        
+        # Add observations if present
+        if observations and observations.strip():
+            parts.append(f"Observaciones: {observations.strip()}.")
+        
+        # Join all parts with spaces
+        return " ".join(parts)
     
     def generate_fast_embedding(self, text: str):
         """
@@ -203,6 +233,7 @@ class EmbeddingService:
         day_of_week: Optional[str],
         supports: List[str],
         result: str,
+        additional_supports: Optional[str] = None,
         observations: Optional[str] = None,
         model_type: Literal["fast", "quality"] = "quality"
     ):
@@ -218,6 +249,7 @@ class EmbeddingService:
             day_of_week: Day of week (optional)
             supports: List of supports used
             result: Result of the event
+            additional_supports: Additional supports in free text (optional)
             observations: Optional observations
             model_type: Which model to use ("fast" or "quality")
             
