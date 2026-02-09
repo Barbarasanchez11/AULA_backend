@@ -5,9 +5,10 @@ from uuid import UUID
 from typing import List
 
 from app.models.database import get_db
-from app.models.models import Recommendation, Classroom
+from app.models.models import Recommendation, Classroom, Event
 from app.schemas.recommendation import RecommendationResponse, RecommendationCreate
 from app.schemas.enums import RecommendationType, ConfidenceLevel
+from app.services.recommendation_generator import RecommendationGenerator
 
 router = APIRouter(
     prefix="/recommendations",
@@ -52,6 +53,98 @@ async def list_recommendations(
     
     # Convert models to response schemas
     return [recommendation_model_to_response(rec) for rec in recommendations]
+
+
+@router.post("/generate", response_model=List[RecommendationResponse], status_code=201)
+async def generate_recommendations(
+    classroom_id: UUID = Query(..., description="ID of the classroom to generate recommendations for"),
+    clustering_eps: float = Query(0.3, ge=0.0, le=1.0, description="DBSCAN eps parameter for pattern analysis"),
+    clustering_min_samples: int = Query(2, ge=2, description="DBSCAN min_samples parameter for pattern analysis"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate recommendations automatically based on pattern analysis.
+    
+    Analyzes patterns in classroom events and generates actionable recommendations:
+    - Support effectiveness recommendations
+    - Temporal pattern recommendations
+    - Clustering-based recommendations
+    
+    All generated recommendations are saved to the database and returned.
+    """
+    # Validate that the classroom exists
+    result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
+    classroom = result.scalar_one_or_none()
+    
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    # Get all events for this classroom
+    result = await db.execute(select(Event).where(Event.classroom_id == classroom_id))
+    events = result.scalars().all()
+    
+    if not events:
+        raise HTTPException(
+            status_code=404,
+            detail="No events found for this classroom. Create some events first to generate recommendations."
+        )
+    
+    try:
+        # Initialize recommendation generator
+        generator = RecommendationGenerator()
+        
+        # Generate recommendations from patterns
+        recommendation_dicts = generator.generate_all_recommendations(
+            classroom_id=classroom_id,
+            events=events,
+            pattern_results=None,  # Will compute internally
+            clustering_eps=clustering_eps,
+            clustering_min_samples=clustering_min_samples
+        )
+        
+        if not recommendation_dicts:
+            raise HTTPException(
+                status_code=404,
+                detail="No patterns detected strong enough to generate recommendations. "
+                       "More events or stronger patterns are needed."
+            )
+        
+        # Save recommendations to database
+        saved_recommendations = []
+        for rec_dict in recommendation_dicts:
+            db_recommendation = Recommendation(
+                classroom_id=classroom_id,
+                recommendation_type=rec_dict["recommendation_type"].value,
+                title=rec_dict["title"],
+                description=rec_dict["description"],
+                applicable_context=rec_dict["applicable_context"],
+                detected_pattern=rec_dict["detected_pattern"],
+                confidence=rec_dict["confidence"].value
+            )
+            db.add(db_recommendation)
+            saved_recommendations.append(db_recommendation)
+        
+        await db.commit()
+        
+        # Refresh all recommendations to get IDs
+        for rec in saved_recommendations:
+            await db.refresh(rec)
+        
+        # Convert to response schemas
+        return [recommendation_model_to_response(rec) for rec in saved_recommendations]
+    
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Recommendation generation service not available: {str(e)}"
+        )
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating recommendations: {str(e)}"
+        )
+
 
 @router.get("/{id}", response_model=RecommendationResponse)
 async def get_recommendation(id: UUID, db: AsyncSession = Depends(get_db)):
@@ -103,4 +196,95 @@ async def create_recommendation(recommendation: RecommendationCreate, db: AsyncS
     
     # Convert model to response schema
     return recommendation_model_to_response(db_recommendation)
+
+
+@router.post("/generate", response_model=List[RecommendationResponse], status_code=201)
+async def generate_recommendations(
+    classroom_id: UUID = Query(..., description="ID of the classroom to generate recommendations for"),
+    clustering_eps: float = Query(0.3, ge=0.0, le=1.0, description="DBSCAN eps parameter for pattern analysis"),
+    clustering_min_samples: int = Query(2, ge=2, description="DBSCAN min_samples parameter for pattern analysis"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate recommendations automatically based on pattern analysis.
+    
+    Analyzes patterns in classroom events and generates actionable recommendations:
+    - Support effectiveness recommendations
+    - Temporal pattern recommendations
+    - Clustering-based recommendations
+    
+    All generated recommendations are saved to the database and returned.
+    """
+    # Validate that the classroom exists
+    result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
+    classroom = result.scalar_one_or_none()
+    
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+    
+    # Get all events for this classroom
+    result = await db.execute(select(Event).where(Event.classroom_id == classroom_id))
+    events = result.scalars().all()
+    
+    if not events:
+        raise HTTPException(
+            status_code=404,
+            detail="No events found for this classroom. Create some events first to generate recommendations."
+        )
+    
+    try:
+        # Initialize recommendation generator
+        generator = RecommendationGenerator()
+        
+        # Generate recommendations from patterns
+        recommendation_dicts = generator.generate_all_recommendations(
+            classroom_id=classroom_id,
+            events=events,
+            pattern_results=None,  # Will compute internally
+            clustering_eps=clustering_eps,
+            clustering_min_samples=clustering_min_samples
+        )
+        
+        if not recommendation_dicts:
+            raise HTTPException(
+                status_code=404,
+                detail="No patterns detected strong enough to generate recommendations. "
+                       "More events or stronger patterns are needed."
+            )
+        
+        # Save recommendations to database
+        saved_recommendations = []
+        for rec_dict in recommendation_dicts:
+            db_recommendation = Recommendation(
+                classroom_id=classroom_id,
+                recommendation_type=rec_dict["recommendation_type"].value,
+                title=rec_dict["title"],
+                description=rec_dict["description"],
+                applicable_context=rec_dict["applicable_context"],
+                detected_pattern=rec_dict["detected_pattern"],
+                confidence=rec_dict["confidence"].value
+            )
+            db.add(db_recommendation)
+            saved_recommendations.append(db_recommendation)
+        
+        await db.commit()
+        
+        # Refresh all recommendations to get IDs
+        for rec in saved_recommendations:
+            await db.refresh(rec)
+        
+        # Convert to response schemas
+        return [recommendation_model_to_response(rec) for rec in saved_recommendations]
+    
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Recommendation generation service not available: {str(e)}"
+        )
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating recommendations: {str(e)}"
+        )
 
