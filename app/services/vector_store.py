@@ -59,32 +59,37 @@ class VectorStore:
             )
         )
     
-    def _get_collection_name(self, classroom_id: UUID) -> str:
+    def _get_collection_name(self, classroom_id: UUID, model_type: str = "quality") -> str:
         """
-        Generate collection name for a classroom.
+        Generate collection name for a classroom and model type.
+        
+        ChromaDB requires all embeddings in a collection to have the same dimension.
+        We use separate collections for fast (512 dims) and quality (768 dims) models.
         
         Args:
             classroom_id: UUID of the classroom
+            model_type: Model type ("fast" or "quality")
             
         Returns:
-            str: Collection name (format: "classroom_{uuid}")
+            str: Collection name (format: "classroom_{uuid}_{model_type}")
         """
-        return f"classroom_{str(classroom_id)}"
+        return f"classroom_{str(classroom_id)}_{model_type}"
     
-    def get_or_create_collection(self, classroom_id: UUID) -> Any:
+    def get_or_create_collection(self, classroom_id: UUID, model_type: str = "quality") -> Any:
         """
-        Get or create a collection for a classroom.
+        Get or create a collection for a classroom and model type.
         
         Collections are created lazily - only when first needed.
-        Each classroom has its own isolated collection.
+        Each classroom has separate collections for fast and quality models.
         
         Args:
             classroom_id: UUID of the classroom
+            model_type: Model type ("fast" or "quality")
             
         Returns:
-            chromadb.Collection: Collection for the classroom
+            chromadb.Collection: Collection for the classroom and model type
         """
-        collection_name = self._get_collection_name(classroom_id)
+        collection_name = self._get_collection_name(classroom_id, model_type)
         
         try:
             # Try to get existing collection
@@ -93,7 +98,7 @@ class VectorStore:
             # Collection doesn't exist, create it
             collection = self.client.create_collection(
                 name=collection_name,
-                metadata={"classroom_id": str(classroom_id)}
+                metadata={"classroom_id": str(classroom_id), "model_type": model_type}
             )
         
         return collection
@@ -103,7 +108,8 @@ class VectorStore:
         classroom_id: UUID,
         event_id: UUID | str,  # Can be UUID or string (for custom IDs like "event_id_fast")
         embedding: Any,  # numpy array or list
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        model_type: str = "quality"
     ) -> None:
         """
         Add or update an event embedding in the vector store.
@@ -112,15 +118,16 @@ class VectorStore:
         
         Args:
             classroom_id: UUID of the classroom
-            event_id: UUID of the event
+            event_id: UUID or string ID of the event
             embedding: Embedding vector (numpy array or list)
             metadata: Optional metadata (e.g., event_type, result, etc.)
+            model_type: Model type ("fast" or "quality") - determines which collection to use
             
         Raises:
             ImportError: If chromadb is not installed.
             Exception: If embedding cannot be added.
         """
-        collection = self.get_or_create_collection(classroom_id)
+        collection = self.get_or_create_collection(classroom_id, model_type)
         
         # Convert embedding to list if it's a numpy array
         if hasattr(embedding, 'tolist'):
@@ -151,7 +158,8 @@ class VectorStore:
         query_embedding: Any,  # numpy array or list
         top_k: int = 5,
         filters: Optional[Dict[str, Any]] = None,
-        min_similarity: Optional[float] = None
+        min_similarity: Optional[float] = None,
+        model_type: str = "quality"
     ) -> List[Dict[str, Any]]:
         """
         Search for similar events using semantic similarity.
@@ -162,6 +170,7 @@ class VectorStore:
             top_k: Number of similar events to return (default: 5)
             filters: Optional metadata filters (e.g., {"event_type": "TRANSICION"})
             min_similarity: Minimum similarity score (0.0 to 1.0). If None, no threshold.
+            model_type: Model type ("fast" or "quality") - determines which collection to search
             
         Returns:
             List[Dict]: List of similar events with scores, each containing:
@@ -173,7 +182,7 @@ class VectorStore:
             ImportError: If chromadb is not installed.
             Exception: If search fails.
         """
-        collection = self.get_or_create_collection(classroom_id)
+        collection = self.get_or_create_collection(classroom_id, model_type)
         
         # Convert embedding to list if it's a numpy array
         if hasattr(query_embedding, 'tolist'):
@@ -182,9 +191,10 @@ class VectorStore:
             query_embedding_list = list(query_embedding)
         
         # Prepare where clause for filtering
+        # Remove model_type from filters if present (it's handled by collection selection)
         where_clause = None
         if filters:
-            where_clause = filters
+            where_clause = {k: v for k, v in filters.items() if k != "model_type"}
         
         # Search for similar events
         results = collection.query(
@@ -233,23 +243,57 @@ class VectorStore:
             ImportError: If chromadb is not installed.
             Exception: If deletion fails.
         """
-        collection = self.get_or_create_collection(classroom_id)
-        
         try:
             if delete_both_models and isinstance(event_id, UUID):
-                # Delete both fast and quality embeddings
+                # Delete from both collections (fast and quality)
                 event_id_str = str(event_id)
-                collection.delete(ids=[f"{event_id_str}_fast", f"{event_id_str}_quality"])
+                
+                # Delete from fast collection
+                try:
+                    collection_fast = self.get_or_create_collection(classroom_id, "fast")
+                    collection_fast.delete(ids=[event_id_str])
+                except Exception:
+                    pass  # Collection or event may not exist
+                
+                # Delete from quality collection
+                try:
+                    collection_quality = self.get_or_create_collection(classroom_id, "quality")
+                    collection_quality.delete(ids=[event_id_str])
+                except Exception:
+                    pass  # Collection or event may not exist
             else:
-                # Delete only the specified ID
-                collection.delete(ids=[str(event_id)])
+                # Delete from the appropriate collection based on event_id format
+                # If event_id contains "_fast" or "_quality", use that, otherwise try both
+                event_id_str = str(event_id)
+                if "_fast" in event_id_str:
+                    model_type = "fast"
+                    event_id_clean = event_id_str.replace("_fast", "")
+                elif "_quality" in event_id_str:
+                    model_type = "quality"
+                    event_id_clean = event_id_str.replace("_quality", "")
+                else:
+                    # Try both collections
+                    try:
+                        collection_fast = self.get_or_create_collection(classroom_id, "fast")
+                        collection_fast.delete(ids=[event_id_str])
+                    except Exception:
+                        pass
+                    try:
+                        collection_quality = self.get_or_create_collection(classroom_id, "quality")
+                        collection_quality.delete(ids=[event_id_str])
+                    except Exception:
+                        pass
+                    return
+                
+                collection = self.get_or_create_collection(classroom_id, model_type)
+                collection.delete(ids=[event_id_clean])
         except Exception as e:
             # If event doesn't exist, that's okay (idempotent operation)
             pass
     
     def delete_classroom_collection(self, classroom_id: UUID) -> None:
         """
-        Delete all embeddings for a classroom (delete the entire collection).
+        Delete all embeddings for a classroom (delete both fast and quality collections).
         
         This is useful when a classroom is deleted.
         
@@ -260,24 +304,26 @@ class VectorStore:
             ImportError: If chromadb is not installed.
             Exception: If deletion fails.
         """
-        collection_name = self._get_collection_name(classroom_id)
-        
-        try:
-            self.client.delete_collection(name=collection_name)
-        except Exception as e:
-            # If collection doesn't exist, that's okay
-            pass
+        # Delete both fast and quality collections
+        for model_type in ["fast", "quality"]:
+            collection_name = self._get_collection_name(classroom_id, model_type)
+            try:
+                self.client.delete_collection(name=collection_name)
+            except Exception as e:
+                # If collection doesn't exist, that's okay
+                pass
     
-    def get_collection_count(self, classroom_id: UUID) -> int:
+    def get_collection_count(self, classroom_id: UUID, model_type: str = "quality") -> int:
         """
         Get the number of events stored in a classroom's collection.
         
         Args:
             classroom_id: UUID of the classroom
+            model_type: Model type ("fast" or "quality")
             
         Returns:
             int: Number of events in the collection
         """
-        collection = self.get_or_create_collection(classroom_id)
+        collection = self.get_or_create_collection(classroom_id, model_type)
         return collection.count()
 

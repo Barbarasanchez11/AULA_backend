@@ -114,25 +114,24 @@ async def get_similar_events(
             model_type=model_type
         )
         
-        # Prepare filters
+        # Prepare filters (model_type is now handled by collection selection, not filter)
         search_filters = None
         if event_type_filter:
             search_filters = {"event_type": event_type_filter}
         
-        # Add model_type filter to search in the correct collection
-        if search_filters:
-            search_filters["model_type"] = model_type
-        else:
-            search_filters = {"model_type": model_type}
-        
-        # Search for similar events
+        # Search for similar events (model_type determines which collection to search)
         similar_results = vector_store.search_similar_events(
             classroom_id=classroom_id,
             query_embedding=query_embedding,
             top_k=top_k + 1,  # +1 because we'll filter out the source event
             filters=search_filters,
-            min_similarity=min_similarity
+            min_similarity=min_similarity,
+            model_type=model_type
         )
+        
+        # If no similar events found, return empty list (this is normal if embeddings haven't been generated yet)
+        if not similar_results:
+            return []
         
         # Get full event details from database
         similar_events = []
@@ -174,7 +173,14 @@ async def get_similar_events(
             status_code=503,
             detail="Embedding service not available. Ensure sentence-transformers and chromadb are installed."
         )
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404, 400, etc.)
+        raise
     except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Error in get_similar_events: {error_trace}")
         raise HTTPException(
             status_code=500,
             detail=f"Error searching for similar events: {str(e)}"
@@ -398,21 +404,23 @@ def _generate_and_store_embeddings(
         }
         
         # Store fast embedding (for quick searches)
-        # Use unique ID: {event_id}_fast
+        # Use event_id directly (not with suffix, since we use separate collections)
         vector_store.add_event_embedding(
             classroom_id=classroom_id,
-            event_id=f"{event_id}_fast",  # String ID for fast model
+            event_id=str(event_id),  # Use event_id directly
             embedding=embedding_fast,
-            metadata={**metadata, "model_type": "fast", "original_event_id": str(event_id)}
+            metadata={**metadata, "original_event_id": str(event_id)},
+            model_type="fast"
         )
         
         # Store quality embedding (for analysis and recommendations)
-        # Use unique ID: {event_id}_quality
+        # Use event_id directly (not with suffix, since we use separate collections)
         vector_store.add_event_embedding(
             classroom_id=classroom_id,
-            event_id=f"{event_id}_quality",  # String ID for quality model
+            event_id=str(event_id),  # Use event_id directly
             embedding=embedding_quality,
-            metadata={**metadata, "model_type": "quality", "original_event_id": str(event_id)}
+            metadata={**metadata, "original_event_id": str(event_id)},
+            model_type="quality"
         )
         
     except Exception as e:
