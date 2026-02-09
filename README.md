@@ -595,20 +595,41 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 
 **Endpoints implementados:**
 - 5 endpoints de Classrooms (CRUD completo)
-- 5 endpoints de Events (CRUD completo)
-- 3 endpoints de Recommendations (GET list, GET by ID, POST)
+- 6 endpoints de Events (CRUD completo + similar + patterns)
+- 4 endpoints de Recommendations (GET list, GET by ID, POST, POST generate)
 
-### 🔄 Fase 2: Análisis de Patrones (EN PROGRESO)
-- ⏳ Integración de embeddings semánticos
-- ⏳ Vector DB (FAISS o Chroma)
-- ⏳ Servicio de análisis de patrones
-- ⏳ Detección de correlaciones temporales
+### ✅ Fase 2: Base IA (COMPLETADA)
+- ✅ Sistema de embeddings híbrido (distiluse + mpnet)
+- ✅ Vector DB con ChromaDB (persistente, por aula)
+- ✅ Búsqueda semántica de eventos similares
+- ✅ Integración automática con eventos (background tasks)
+- ✅ Endpoint: `GET /events/similar`
 
-### ⏳ Fase 3: Recomendaciones Automáticas (PENDIENTE)
-- ⏳ Integración de LangGraph para orquestación IA
-- ⏳ Generación automática de recomendaciones basadas en patrones
-- ⏳ Sistema de priorización y confianza mejorado
-- ⏳ Procesamiento periódico de eventos
+**Archivos:**
+- `app/services/embeddingService.py`: Servicio de embeddings híbrido
+- `app/services/vector_store.py`: Gestión de ChromaDB
+- Documentación: `docs/embeddings_implementation.md`
+
+### ✅ Fase 3: Análisis de Patrones y Recomendaciones (COMPLETADA - Sin LangGraph)
+- ✅ Análisis de patrones (clustering, temporal, efectividad)
+- ✅ Generación automática de recomendaciones desde patrones
+- ✅ Sistema de confianza (ALTA/MEDIA/BAJA)
+- ✅ Explicabilidad de patrones detectados
+
+**Endpoints implementados:**
+- `GET /events/patterns`: Analiza patrones en eventos
+- `POST /recommendations/generate`: Genera recomendaciones automáticamente
+
+**Archivos:**
+- `app/services/pattern_analysis.py`: Análisis de patrones
+- `app/services/recommendation_generator.py`: Generación de recomendaciones
+- Documentación: `docs/phase3_pattern_analysis.md`
+
+### ⏳ Fase 3.5: Integración con LangGraph (PENDIENTE)
+- ⏳ Orquestación de agentes de IA
+- ⏳ Generación de texto más natural con LLMs
+- ⏳ Flujo completo automatizado
+- ⏳ Validación humana progresiva
 
 ### ⏳ Fase 4: Validación y Despliegue (PENDIENTE)
 - ⏳ Sistema de feedback del docente
