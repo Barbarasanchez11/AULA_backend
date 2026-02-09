@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
@@ -8,6 +8,8 @@ from app.models.database import get_db
 from app.models.models import Event, Classroom
 from app.schemas.event import EventCreate, EventResponse, EventContext, EventUpdate
 from app.schemas.enums import EventType, EventResult, MomentOfDay, DayOfWeek, SupportType
+from app.services.embeddingService import EmbeddingService
+from app.services.vector_store import VectorStore
 
 router = APIRouter(
     prefix="/events",
@@ -147,13 +149,97 @@ async def delete_event(id: UUID, db: AsyncSession = Depends(get_db)):
     
     return None
 
+def _generate_and_store_embeddings(
+    event_id: UUID,
+    classroom_id: UUID,
+    event_type: str,
+    description: str,
+    moment_of_day: str,
+    day_of_week: str | None,
+    supports: List[str],
+    result: str,
+    additional_supports: str | None,
+    observations: str | None
+):
+    """
+    Background task to generate and store embeddings for an event.
+    
+    This function runs in the background after the HTTP response is sent,
+    so it doesn't block the API response.
+    """
+    try:
+        # Get services
+        embedding_service = EmbeddingService.get_instance()
+        vector_store = VectorStore()
+        
+        # Generate embeddings (both fast and quality)
+        embedding_fast = embedding_service.generate_event_embedding(
+            event_type=event_type,
+            description=description,
+            moment_of_day=moment_of_day,
+            day_of_week=day_of_week,
+            supports=supports,
+            result=result,
+            additional_supports=additional_supports,
+            observations=observations,
+            model_type="fast"
+        )
+        
+        embedding_quality = embedding_service.generate_event_embedding(
+            event_type=event_type,
+            description=description,
+            moment_of_day=moment_of_day,
+            day_of_week=day_of_week,
+            supports=supports,
+            result=result,
+            additional_supports=additional_supports,
+            observations=observations,
+            model_type="quality"
+        )
+        
+        # Store embeddings in VectorStore with metadata
+        metadata = {
+            "event_type": event_type,
+            "result": result,
+            "moment_of_day": moment_of_day
+        }
+        
+        # Store fast embedding (for quick searches)
+        # Use unique ID: {event_id}_fast
+        vector_store.add_event_embedding(
+            classroom_id=classroom_id,
+            event_id=f"{event_id}_fast",  # String ID for fast model
+            embedding=embedding_fast,
+            metadata={**metadata, "model_type": "fast", "original_event_id": str(event_id)}
+        )
+        
+        # Store quality embedding (for analysis and recommendations)
+        # Use unique ID: {event_id}_quality
+        vector_store.add_event_embedding(
+            classroom_id=classroom_id,
+            event_id=f"{event_id}_quality",  # String ID for quality model
+            embedding=embedding_quality,
+            metadata={**metadata, "model_type": "quality", "original_event_id": str(event_id)}
+        )
+        
+    except Exception as e:
+        # Log error but don't fail the request
+        # In production, you might want to use a proper logging system
+        print(f"Error generating embeddings for event {event_id}: {e}")
+
+
 @router.post("/", response_model=EventResponse, status_code=201)
-async def create_event(event: EventCreate, db: AsyncSession = Depends(get_db)):
+async def create_event(
+    event: EventCreate,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
+):
     """
     Create a new event.
     
     Creates a new pedagogical event for a classroom.
     Validates that the classroom exists before creating the event.
+    Automatically generates and stores embeddings for semantic search.
     """
     # Validate that the classroom exists
     result = await db.execute(select(Classroom).where(Classroom.id == event.classroom_id))
@@ -180,6 +266,22 @@ async def create_event(event: EventCreate, db: AsyncSession = Depends(get_db)):
     db.add(db_event)
     await db.commit()
     await db.refresh(db_event)
+    
+    # Schedule background task to generate and store embeddings
+    # This runs after the HTTP response is sent, so it doesn't block the API
+    background_tasks.add_task(
+        _generate_and_store_embeddings,
+        event_id=db_event.id,
+        classroom_id=db_event.classroom_id,
+        event_type=db_event.event_type,
+        description=db_event.description,
+        moment_of_day=db_event.moment_of_day,
+        day_of_week=db_event.day_of_week,
+        supports=db_event.supports,
+        result=db_event.result,
+        additional_supports=db_event.additional_supports,
+        observations=db_event.observations
+    )
     
     # Convert model to response schema
     return event_model_to_response(db_event)

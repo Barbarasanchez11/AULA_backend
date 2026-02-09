@@ -101,7 +101,7 @@ class VectorStore:
     def add_event_embedding(
         self,
         classroom_id: UUID,
-        event_id: UUID,
+        event_id: UUID | str,  # Can be UUID or string (for custom IDs like "event_id_fast")
         embedding: Any,  # numpy array or list
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
@@ -129,8 +129,9 @@ class VectorStore:
             embedding_list = list(embedding)
         
         # Prepare metadata
+        event_id_str = str(event_id)
         event_metadata = {
-            "event_id": str(event_id),
+            "event_id": event_id_str,
             "classroom_id": str(classroom_id)
         }
         if metadata:
@@ -139,7 +140,7 @@ class VectorStore:
         # Add or update embedding
         # ChromaDB will update if the ID already exists
         collection.upsert(
-            ids=[str(event_id)],
+            ids=[event_id_str],
             embeddings=[embedding_list],
             metadatas=[event_metadata]
         )
@@ -216,14 +217,17 @@ class VectorStore:
     def delete_event_embedding(
         self,
         classroom_id: UUID,
-        event_id: UUID
+        event_id: UUID | str,
+        delete_both_models: bool = True
     ) -> None:
         """
         Delete an event embedding from the vector store.
         
         Args:
             classroom_id: UUID of the classroom
-            event_id: UUID of the event to delete
+            event_id: UUID or string ID of the event to delete
+            delete_both_models: If True, deletes both fast and quality embeddings.
+                              If False, deletes only the specified event_id.
             
         Raises:
             ImportError: If chromadb is not installed.
@@ -232,7 +236,13 @@ class VectorStore:
         collection = self.get_or_create_collection(classroom_id)
         
         try:
-            collection.delete(ids=[str(event_id)])
+            if delete_both_models and isinstance(event_id, UUID):
+                # Delete both fast and quality embeddings
+                event_id_str = str(event_id)
+                collection.delete(ids=[f"{event_id_str}_fast", f"{event_id_str}_quality"])
+            else:
+                # Delete only the specified ID
+                collection.delete(ids=[str(event_id)])
         except Exception as e:
             # If event doesn't exist, that's okay (idempotent operation)
             pass
