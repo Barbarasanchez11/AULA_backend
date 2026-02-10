@@ -309,19 +309,27 @@ class VectorStore:
                 print(f"   [DEBUG] Similarity {similarity} below threshold {min_similarity}, skipping")
                 continue
             
-                # Get metadata - same structure as ids and distances
-                metadatas_list = results.get('metadatas', [])
-                if metadatas_list and len(metadatas_list) > 0:
-                    first_query_metadatas = metadatas_list[0] if isinstance(metadatas_list[0], list) else metadatas_list
-                    metadata = first_query_metadatas[i] if isinstance(first_query_metadatas, list) and i < len(first_query_metadatas) else {}
-                else:
-                    metadata = {}
-                
+            # Get metadata - same structure as ids and distances
+            metadatas_list = results.get('metadatas', [])
+            if metadatas_list and len(metadatas_list) > 0:
+                first_query_metadatas = metadatas_list[0] if isinstance(metadatas_list[0], list) else metadatas_list
+                metadata = first_query_metadatas[i] if isinstance(first_query_metadatas, list) and i < len(first_query_metadatas) else {}
+            else:
+                metadata = {}
+            
+            print(f"   [DEBUG] Adding result {i+1} to similar_events: event_id={event_id}, similarity={similarity}")
+            try:
                 similar_events.append({
                     "event_id": UUID(event_id),
                     "score": similarity,
                     "metadata": metadata
                 })
+                print(f"   [DEBUG] Successfully added result {i+1}")
+            except Exception as e:
+                print(f"   [DEBUG] Error adding result {i+1}: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
         
         return similar_events
     
