@@ -615,6 +615,9 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 - ✅ Generación automática de recomendaciones desde patrones
 - ✅ Sistema de confianza (ALTA/MEDIA/BAJA)
 - ✅ Explicabilidad de patrones detectados
+- ✅ Recomendaciones con lenguaje más natural y pedagógico
+- ✅ Lazy loading de modelos para optimizar inicio
+- ✅ Procesamiento en background para embeddings
 
 **Endpoints implementados:**
 - `GET /events/patterns`: Analiza patrones en eventos
@@ -625,11 +628,29 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 - `app/services/recommendation_generator.py`: Generación de recomendaciones
 - Documentación: `docs/phase3_pattern_analysis.md`
 
-### ⏳ Fase 3.5: Integración con LangGraph (PENDIENTE)
+### ✅ Fase 3.5: Preparación para Datos Reales (COMPLETADA)
+- ✅ Servicio de normalización de texto (`TextNormalizer`)
+- ✅ Servicio de validación PII mejorado (`PIIValidator`)
+  - Detección de DNI/NIE, teléfonos, emails
+  - Detección mejorada de nombres (múltiples estrategias)
+  - Detección de fechas y direcciones
+- ✅ Script de importación masiva desde CSV
+- ✅ Validación de esquemas en importación
+- ✅ Integración de normalización y PII en endpoints
+- ✅ Generación automática de embeddings en importación
+
+**Archivos:**
+- `app/services/text_normalizer.py`: Normalización de texto
+- `app/services/pii_validator.py`: Validación de PII
+- `scripts/import_events_from_csv.py`: Importación masiva
+- Documentación: `scripts/TESTING_GUIDE.md`
+
+### ⏳ Fase 4: Integración con LangGraph (PENDIENTE - Después de validar con datos reales)
 - ⏳ Orquestación de agentes de IA
 - ⏳ Generación de texto más natural con LLMs
 - ⏳ Flujo completo automatizado
 - ⏳ Validación humana progresiva
+- **Nota:** Se integrará después de validar el sistema base con datos reales
 
 ### ⏳ Fase 4: Validación y Despliegue (PENDIENTE)
 - ⏳ Sistema de feedback del docente
@@ -649,12 +670,13 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 
 Documentación técnica detallada disponible en `docs/`:
 
-- **[Arquitectura Técnica](docs/architecture.md)**: Estructura del sistema, tecnologías y decisiones de diseño
+- **[Estado Actual del Proyecto](docs/current_status.md)**: Estado completo, mejoras implementadas y próximos pasos
 - **[Implementación de Embeddings](docs/embeddings_implementation.md)**: Sistema híbrido de embeddings, lazy loading y vector store
 - **[Análisis de Patrones y Recomendaciones](docs/phase3_pattern_analysis.md)**: Servicios de análisis de patrones y generación de recomendaciones
 - **[Flujo de IA](docs/ai_workflow.md)**: Flujo completo del sistema desde eventos hasta recomendaciones
 - **[Protección de Datos](docs/privacy_and_data_protection.md)**: Medidas de privacidad y cumplimiento RGPD
 - **[Requisitos de Ciberseguridad](docs/cybersecurity_requirements.md)**: Plan de ciberseguridad y PII scanner
+- **[Guía de Testing](scripts/TESTING_GUIDE.md)**: Guía completa para probar todas las funcionalidades
 
 ## Contribuciones y Contacto
 
