@@ -200,28 +200,57 @@ class VectorStore:
         # Note: ChromaDB uses cosine distance by default
         # Distance 0 = identical, Distance 2 = opposite
         # Similarity = 1 - (distance / 2) for cosine distance
-        results = collection.query(
-            query_embeddings=[query_embedding_list],
-            n_results=top_k,
-            where=where_clause,
-            include=['metadatas', 'distances']  # Explicitly include distances
-        )
+        
+        # Debug: Print query details
+        print(f"   [DEBUG] Query embedding length: {len(query_embedding_list)}")
+        print(f"   [DEBUG] Collection count: {collection.count()}")
+        print(f"   [DEBUG] Top K: {top_k}")
+        print(f"   [DEBUG] Where clause: {where_clause}")
+        
+        try:
+            results = collection.query(
+                query_embeddings=[query_embedding_list],
+                n_results=top_k,
+                where=where_clause,
+                include=['metadatas', 'distances']  # Explicitly include distances
+            )
+            
+            print(f"   [DEBUG] Query completed successfully")
+            print(f"   [DEBUG] Results type: {type(results)}")
+            print(f"   [DEBUG] Results keys: {results.keys() if isinstance(results, dict) else 'Not a dict'}")
+            
+        except Exception as e:
+            print(f"   [DEBUG] Query failed with error: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
         
         # Format results
         similar_events = []
         
         # Debug: Check what ChromaDB returned
+        print(f"   [DEBUG] Checking results structure...")
         if not results.get('ids'):
             print(f"⚠️  ChromaDB query returned no 'ids' key. Results keys: {results.keys()}")
+            print(f"   [DEBUG] Full results: {results}")
             return similar_events
         
         ids_list = results['ids']
+        print(f"   [DEBUG] IDs list type: {type(ids_list)}")
+        print(f"   [DEBUG] IDs list: {ids_list}")
+        
         if not ids_list or len(ids_list) == 0:
             print(f"⚠️  ChromaDB query returned empty ids list")
+            print(f"   [DEBUG] Full results: {results}")
             return similar_events
+        
+        print(f"   [DEBUG] IDs[0] type: {type(ids_list[0])}")
+        print(f"   [DEBUG] IDs[0]: {ids_list[0]}")
+        print(f"   [DEBUG] IDs[0] length: {len(ids_list[0])}")
         
         if len(ids_list[0]) == 0:
             print(f"⚠️  ChromaDB query returned ids list with 0 items")
+            print(f"   [DEBUG] Full results: {results}")
             return similar_events
         
         # Process results
