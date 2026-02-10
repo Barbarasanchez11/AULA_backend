@@ -218,16 +218,22 @@ def print_support_effectiveness(support_effectiveness: Dict[str, Any]):
     
     if most_effective:
         print(f"\n🏆 Most effective supports:")
-        for support in most_effective[:5]:
-            rate = success_rates.get(support, 0)
+        # most_effective is a list of dicts: [{"support": "...", "success_rate": 0.xx}, ...]
+        for item in most_effective[:5]:
+            support = item.get("support", "Unknown")
+            rate = item.get("success_rate", 0)
             usage = usage_counts.get(support, 0)
             print(f"   - {support}: {rate:.1%} success ({usage} uses)")
     
     if successful_combinations:
         print(f"\n💡 Successful support combinations (top 5):")
-        for combo, rate in successful_combinations[:5]:
-            combo_str = " + ".join(combo)
-            print(f"   - {combo_str}: {rate:.1%} success rate")
+        # successful_combinations is a list of dicts: [{"supports": [...], "success_rate": 0.xx, "usage_count": N}, ...]
+        for combo_data in successful_combinations[:5]:
+            supports = combo_data.get("supports", [])
+            rate = combo_data.get("success_rate", 0)
+            usage = combo_data.get("usage_count", 0)
+            combo_str = " + ".join(supports)
+            print(f"   - {combo_str}: {rate:.1%} success rate ({usage} uses)")
 
 
 def interpret_patterns(patterns: Dict[str, Any], events: List[Event]) -> str:
@@ -275,7 +281,8 @@ def interpret_patterns(patterns: Dict[str, Any], events: List[Event]) -> str:
     # Pedagogical recommendations
     print("\n💡 Recomendaciones pedagógicas:")
     if most_effective:
-        print(f"   - Considera usar '{most_effective[0]}' más frecuentemente, ya que muestra alta efectividad.")
+        top_support = most_effective[0].get("support", "Unknown") if isinstance(most_effective[0], dict) else most_effective[0]
+        print(f"   - Considera usar '{top_support}' más frecuentemente, ya que muestra alta efectividad.")
     
     most_common_moment = temporal.get("most_common_moment")
     if most_common_moment:
