@@ -248,19 +248,68 @@ class PIIValidator:
             # Remove "estudiante" from names list for this text to avoid false positives
             all_names = [n for n in all_names if n != "estudiante"]
         
+        # Educational words that should be ignored when in educational contexts
+        educational_words = ["estudiante", "estudiantes", "alumno", "alumna", "alumnos", "niño", "niña"]
+        
+        # First, check for educational phrases in the entire text (case-insensitive)
+        text_lower_full = text.lower()
+        educational_phrases = [
+            "los estudiantes", "algunos estudiantes", "todos los estudiantes",
+            "el estudiante", "la estudiante", "un estudiante", "una estudiante",
+            "estudiantes mostraron", "estudiantes necesitaron", "estudiantes necesitaban",
+            "según el estudiante", "según la estudiante",
+            "los alumnos", "algunos alumnos", "todos los alumnos",
+            "el alumno", "la alumna", "un alumno", "una alumna",
+            "alumnos mostraron", "alumnos necesitaron",
+            "el niño", "la niña", "los niños", "las niñas",
+            "(estudiante est",  # synthetic data pattern
+        ]
+        has_educational_context = any(phrase in text_lower_full for phrase in educational_phrases)
+        
         for name in all_names:
-            # Pattern: name at start of sentence or after space/punctuation
+            # Skip educational words when in educational contexts
+            if name.lower() in educational_words:
+                # If the text contains educational phrases, skip all educational word detections
+                if has_educational_context:
+                    continue
+                
+                # Even if no educational phrase, check individual matches
+                pattern = r'\b' + re.escape(name) + r'\b'
+                for match in re.finditer(pattern, text_lower, re.IGNORECASE):
+                    original_match = text[match.start():match.end()]
+                    
+                    # Get context to check if it's in an educational phrase
+                    context_start = max(0, match.start() - 40)
+                    context_end = min(len(text), match.end() + 40)
+                    context = text[context_start:context_end].lower()
+                    
+                    # If it's in any educational phrase, skip it
+                    is_educational_context = any(phrase in context for phrase in educational_phrases)
+                    if is_educational_context:
+                        continue
+                    
+                    # Also check if it's at the start of sentence with article-like words before
+                    # This handles "Los estudiantes..." at start of sentence
+                    if match.start() > 0:
+                        before_text = text[max(0, match.start() - 20):match.start()].lower()
+                        if any(article in before_text for article in ["los ", "las ", "el ", "la ", "un ", "una ", "algunos ", "algunas "]):
+                            continue
+                    else:
+                        # At start of text, check if next word is "estudiantes" after "Los"
+                        # This handles "Los estudiantes..." at very start
+                        if match.start() == 0 and len(text) > len("Los estudiantes"):
+                            if text[:15].lower().startswith("los estudiantes") or text[:15].lower().startswith("las estudiantes"):
+                                continue
+                
+                # Skip this educational word entirely (don't flag it as PII)
+                continue
+            
+            # For other names, use normal detection
             pattern = r'\b' + re.escape(name) + r'\b'
             for match in re.finditer(pattern, text_lower, re.IGNORECASE):
                 # Check if it's capitalized (likely a name)
                 original_match = text[match.start():match.end()]
                 if original_match[0].isupper():
-                    # Skip if it's part of "(estudiante EST001)" pattern
-                    context_start = max(0, match.start() - 20)
-                    context_end = min(len(text), match.end() + 20)
-                    context = text[context_start:context_end]
-                    if re.search(estudiante_synthetic_pattern, context, re.IGNORECASE):
-                        continue
                     matches.append((original_match, match.start()))
         
         # Strategy 2: Detect capitalized words that look like names
