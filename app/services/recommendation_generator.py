@@ -21,9 +21,14 @@ class RecommendationGenerator:
     - Applicable contexts
     """
     
-    def __init__(self):
-        """Initialize RecommendationGenerator with pattern analysis service."""
-        self.pattern_service = PatternAnalysisService()
+    def __init__(self, db_session=None):
+        """
+        Initialize RecommendationGenerator.
+        
+        Args:
+            db_session: Optional database session (needed for pattern analysis)
+        """
+        self.db = db_session
     
     def calculate_confidence(
         self,
@@ -110,22 +115,34 @@ class RecommendationGenerator:
             if temporal_patterns.get("most_common_moment"):
                 context_info = f" especialmente en {temporal_patterns['most_common_moment']}"
             
+            # Generate more natural, pedagogical language
+            if success_rate >= 0.9:
+                effectiveness_desc = "muy alta efectividad"
+                recommendation_text = "se recomienda priorizar su uso"
+            elif success_rate >= 0.7:
+                effectiveness_desc = "buena efectividad"
+                recommendation_text = "se recomienda considerarlo como opción preferente"
+            else:
+                effectiveness_desc = "efectividad moderada"
+                recommendation_text = "puede ser útil en situaciones similares"
+            
             recommendation = {
                 "recommendation_type": RecommendationType.ESTRATEGIA,
                 "title": f"Priorizar uso de {support_name}",
                 "description": (
-                    f"El apoyo '{support_name}' ha demostrado una efectividad del "
-                    f"{success_rate * 100:.0f}% en {usage_count} eventos analizados{context_info}. "
-                    f"Se recomienda considerarlo como primera opción en situaciones similares."
+                    f"El apoyo '{support_name}' ha mostrado {effectiveness_desc} "
+                    f"({success_rate * 100:.0f}% de éxito) en {usage_count} situaciones analizadas"
+                    f"{context_info}. {recommendation_text.capitalize()} cuando se presenten situaciones similares."
                 ),
                 "applicable_context": (
-                    f"Aplicar {support_name} en situaciones similares a los eventos históricos analizados"
-                    f"{context_info}. Este apoyo ha mostrado resultados consistentemente positivos."
+                    f"Considerar {support_name} cuando se presenten situaciones similares a las analizadas"
+                    f"{context_info}. Los datos históricos del aula muestran que este apoyo "
+                    f"ha funcionado de manera consistente en estos contextos."
                 ),
                 "detected_pattern": (
-                    f"Patrón detectado: {support_name} utilizado en {usage_count} eventos con "
+                    f"Análisis de {usage_count} eventos muestra que {support_name} se utilizó con "
                     f"una tasa de éxito del {success_rate * 100:.0f}%. "
-                    f"Este apoyo muestra efectividad consistente en el contexto del aula."
+                    f"Este patrón sugiere que es una estrategia efectiva para este aula."
                 ),
                 "confidence": confidence
             }
@@ -147,22 +164,34 @@ class RecommendationGenerator:
                 success_rate=success_rate
             )
             
+            # Generate more natural language for combinations
+            if success_rate >= 0.9:
+                combo_desc = "especialmente efectiva"
+                combo_advice = "se recomienda usar esta combinación"
+            elif success_rate >= 0.7:
+                combo_desc = "muy efectiva"
+                combo_advice = "puede ser muy útil usar esta combinación"
+            else:
+                combo_desc = "efectiva"
+                combo_advice = "puede ser útil considerar esta combinación"
+            
             recommendation = {
                 "recommendation_type": RecommendationType.ESTRATEGIA,
                 "title": f"Combinar apoyos: {supports_text}",
                 "description": (
-                    f"La combinación de '{supports_text}' ha mostrado una efectividad del "
-                    f"{success_rate * 100:.0f}% en {usage_count} eventos. "
-                    f"Esta combinación de apoyos ha demostrado ser especialmente efectiva."
+                    f"La combinación de '{supports_text}' ha demostrado ser {combo_desc} "
+                    f"con una tasa de éxito del {success_rate * 100:.0f}% en {usage_count} situaciones. "
+                    f"{combo_advice.capitalize()} cuando se presenten contextos similares."
                 ),
                 "applicable_context": (
-                    f"Cuando sea necesario, considerar usar simultáneamente: {supports_text}. "
-                    f"Esta combinación ha mostrado resultados muy positivos en situaciones similares."
+                    f"En situaciones que requieran apoyo adicional, {combo_advice}: {supports_text}. "
+                    f"Los datos del aula muestran que esta combinación ha funcionado bien "
+                    f"en contextos similares, sugiriendo una sinergia entre estos apoyos."
                 ),
                 "detected_pattern": (
-                    f"Patrón detectado: La combinación de {supports_text} utilizada en "
-                    f"{usage_count} eventos con una tasa de éxito del {success_rate * 100:.0f}%. "
-                    f"Esta combinación muestra sinergia entre los diferentes tipos de apoyo."
+                    f"Análisis de {usage_count} eventos muestra que la combinación de {supports_text} "
+                    f"se utilizó con una tasa de éxito del {success_rate * 100:.0f}%. "
+                    f"Este patrón indica que estos apoyos funcionan bien juntos en este contexto."
                 ),
                 "confidence": confidence
             }
@@ -206,22 +235,34 @@ class RecommendationGenerator:
                     sample_size=day_count
                 )
                 
+                # Generate more natural temporal recommendation
+                if day_percentage >= 50:
+                    temporal_desc = "momento crítico"
+                    temporal_advice = "es especialmente importante preparar"
+                elif day_percentage >= 30:
+                    temporal_desc = "momento que requiere atención"
+                    temporal_advice = "se recomienda preparar"
+                else:
+                    temporal_desc = "momento a considerar"
+                    temporal_advice = "puede ser útil preparar"
+                
                 recommendation = {
                     "recommendation_type": RecommendationType.ANTICIPACION,
                     "title": f"Anticipar eventos los {most_common_day}s por la {most_common_moment}",
                     "description": (
-                        f"Se ha detectado un patrón temporal: los {most_common_day}s por la {most_common_moment} "
-                        f"concentran el {day_percentage:.0f}% de los eventos ({day_count} de {total_events} eventos). "
-                        f"Se recomienda preparar estrategias de anticipación para estos momentos."
+                        f"El análisis de eventos muestra que los {most_common_day}s por la {most_common_moment} "
+                        f"concentran el {day_percentage:.0f}% de los eventos registrados ({day_count} de {total_events}). "
+                        f"Esto sugiere que {temporal_advice} estrategias de anticipación para estos momentos."
                     ),
                     "applicable_context": (
-                        f"Los {most_common_day}s por la {most_common_moment} son momentos críticos. "
-                        f"Preparar con anticipación estrategias de apoyo y rutinas claras para estos momentos."
+                        f"Los {most_common_day}s por la {most_common_moment} han sido identificados como un {temporal_desc}. "
+                        f"Se recomienda preparar con anticipación estrategias de apoyo, rutinas claras y "
+                        f"recursos necesarios para facilitar la transición en estos momentos."
                     ),
                     "detected_pattern": (
-                        f"Patrón temporal detectado: {day_count} eventos ocurrieron los {most_common_day}s "
-                        f"por la {most_common_moment} ({(day_percentage):.0f}% del total). "
-                        f"Este patrón sugiere que estos momentos requieren atención especial."
+                        f"Análisis temporal: {day_count} de {total_events} eventos ({day_percentage:.0f}%) "
+                        f"ocurrieron los {most_common_day}s por la {most_common_moment}. "
+                        f"Este patrón recurrente indica que estos momentos requieren planificación anticipada."
                     ),
                     "confidence": confidence
                 }
@@ -284,23 +325,35 @@ class RecommendationGenerator:
                 success_rate=success_rate
             )
             
-            # Generate recommendation
+            # Generate more natural clustering recommendation
+            if success_rate >= 0.8:
+                cluster_desc = "muy positivos"
+                cluster_advice = "se recomienda aplicar estrategias similares"
+            elif success_rate >= 0.6:
+                cluster_desc = "mayormente positivos"
+                cluster_advice = "puede ser útil considerar estrategias similares"
+            else:
+                cluster_desc = "mixtos"
+                cluster_advice = "se sugiere revisar qué estrategias funcionaron mejor"
+            
             recommendation = {
                 "recommendation_type": RecommendationType.ESTRATEGIA,
                 "title": f"Estrategia para eventos tipo {most_common_type}",
                 "description": (
-                    f"Se identificaron {len(cluster_events)} eventos similares de tipo '{most_common_type}' "
-                    f"con una tasa de éxito del {success_rate * 100:.0f}%. "
-                    f"Estos eventos comparten características semánticas similares."
+                    f"El análisis ha identificado {len(cluster_events)} eventos similares de tipo '{most_common_type}' "
+                    f"con resultados {cluster_desc} ({success_rate * 100:.0f}% de éxito). "
+                    f"Estos eventos comparten características semánticas que sugieren un patrón común. "
+                    f"{cluster_advice.capitalize()} cuando se presenten situaciones similares."
                 ),
                 "applicable_context": (
-                    f"Cuando se presente una situación similar a eventos tipo '{most_common_type}', "
-                    f"considerar las estrategias que funcionaron en eventos similares anteriores."
+                    f"Ante situaciones que se asemejen a eventos tipo '{most_common_type}', "
+                    f"{cluster_advice}. Los eventos históricos similares pueden servir como referencia "
+                    f"para decidir qué estrategias y apoyos utilizar."
                 ),
                 "detected_pattern": (
-                    f"Cluster detectado: {len(cluster_events)} eventos semánticamente similares "
-                    f"de tipo '{most_common_type}' con {success_count} eventos exitosos. "
-                    f"Estos eventos forman un patrón reconocible en el aula."
+                    f"Análisis de similitud semántica: {len(cluster_events)} eventos de tipo '{most_common_type}' "
+                    f"forman un grupo con características similares. De estos, {success_count} fueron exitosos "
+                    f"({success_rate * 100:.0f}%), sugiriendo un patrón reconocible en el aula."
                 ),
                 "confidence": confidence
             }
@@ -308,14 +361,17 @@ class RecommendationGenerator:
             # Add support recommendation if available
             if most_common_support:
                 recommendation["description"] += (
-                    f" El apoyo más utilizado en estos eventos fue '{most_common_support}'."
+                    f" En estos eventos, el apoyo '{most_common_support}' fue el más utilizado."
+                )
+                recommendation["applicable_context"] += (
+                    f" El apoyo '{most_common_support}' puede ser especialmente relevante en estos contextos."
                 )
             
             recommendations.append(recommendation)
         
         return recommendations
     
-    def generate_all_recommendations(
+    async def generate_all_recommendations(
         self,
         classroom_id: UUID,
         events: List[Any],
@@ -338,7 +394,10 @@ class RecommendationGenerator:
         """
         # Get pattern analysis results
         if pattern_results is None:
-            pattern_results = self.pattern_service.analyze_all_patterns(
+            if self.db is None:
+                raise ValueError("Database session required for pattern analysis")
+            pattern_service = PatternAnalysisService(self.db)
+            pattern_results = await pattern_service.analyze_all_patterns(
                 classroom_id=classroom_id,
                 events=events,
                 clustering_eps=clustering_eps,

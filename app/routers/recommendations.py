@@ -9,6 +9,7 @@ from app.models.models import Recommendation, Classroom, Event
 from app.schemas.recommendation import RecommendationResponse, RecommendationCreate
 from app.schemas.enums import RecommendationType, ConfidenceLevel
 from app.services.recommendation_generator import RecommendationGenerator
+from app.services.pattern_analysis import PatternAnalysisService
 
 router = APIRouter(
     prefix="/recommendations",
@@ -90,14 +91,21 @@ async def generate_recommendations(
         )
     
     try:
-        # Initialize recommendation generator
-        generator = RecommendationGenerator()
-        
-        # Generate recommendations from patterns
-        recommendation_dicts = generator.generate_all_recommendations(
+        # 1. Analyze patterns
+        pattern_analysis_service = PatternAnalysisService(db)
+        patterns = await pattern_analysis_service.analyze_all_patterns(
             classroom_id=classroom_id,
             events=events,
-            pattern_results=None,  # Will compute internally
+            clustering_eps=clustering_eps,
+            clustering_min_samples=clustering_min_samples
+        )
+
+        # 2. Generate recommendations from patterns
+        recommendation_generator = RecommendationGenerator(db)
+        recommendation_dicts = await recommendation_generator.generate_all_recommendations(
+            classroom_id=classroom_id,
+            events=events,
+            pattern_results=patterns,  # Use pre-computed patterns
             clustering_eps=clustering_eps,
             clustering_min_samples=clustering_min_samples
         )
@@ -109,7 +117,7 @@ async def generate_recommendations(
                        "More events or stronger patterns are needed."
             )
         
-        # Save recommendations to database
+        # 3. Save recommendations to database
         saved_recommendations = []
         for rec_dict in recommendation_dicts:
             db_recommendation = Recommendation(
@@ -233,14 +241,21 @@ async def generate_recommendations(
         )
     
     try:
-        # Initialize recommendation generator
-        generator = RecommendationGenerator()
-        
-        # Generate recommendations from patterns
-        recommendation_dicts = generator.generate_all_recommendations(
+        # 1. Analyze patterns
+        pattern_analysis_service = PatternAnalysisService(db)
+        patterns = await pattern_analysis_service.analyze_all_patterns(
             classroom_id=classroom_id,
             events=events,
-            pattern_results=None,  # Will compute internally
+            clustering_eps=clustering_eps,
+            clustering_min_samples=clustering_min_samples
+        )
+
+        # 2. Generate recommendations from patterns
+        recommendation_generator = RecommendationGenerator(db)
+        recommendation_dicts = await recommendation_generator.generate_all_recommendations(
+            classroom_id=classroom_id,
+            events=events,
+            pattern_results=patterns,  # Use pre-computed patterns
             clustering_eps=clustering_eps,
             clustering_min_samples=clustering_min_samples
         )
@@ -252,7 +267,7 @@ async def generate_recommendations(
                        "More events or stronger patterns are needed."
             )
         
-        # Save recommendations to database
+        # 3. Save recommendations to database
         saved_recommendations = []
         for rec_dict in recommendation_dicts:
             db_recommendation = Recommendation(

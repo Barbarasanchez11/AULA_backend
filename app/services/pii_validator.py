@@ -77,20 +77,29 @@ class PIIValidator:
     - Birth dates
     """
     
-    # Common Spanish first names (most common ones)
+    # Common Spanish first names (expanded list)
     COMMON_SPANISH_NAMES = [
+        # Most common
         "maria", "carmen", "jose", "juan", "francisco", "antonio", "manuel",
         "laura", "ana", "cristina", "miguel", "david", "pablo", "daniel",
         "javier", "alejandro", "carlos", "luis", "jesus", "pedro",
         "lucia", "sofia", "paula", "martina", "elena", "claudia",
-        "sergio", "adrian", "alvaro", "mario", "raul", "oscar"
+        "sergio", "adrian", "alvaro", "mario", "raul", "oscar",
+        # Additional common names
+        "isabel", "patricia", "monica", "andrea", "beatriz", "nuria",
+        "roberto", "fernando", "jorge", "ricardo", "alberto", "jose luis",
+        "maria jose", "maria carmen", "jose maria", "jose antonio",
+        # Common in educational contexts
+        "alumno", "alumna", "estudiante", "niño", "niña"  # These might be false positives, but better safe
     ]
     
     # Common Spanish surnames
     COMMON_SPANISH_SURNAMES = [
         "garcia", "rodriguez", "gonzalez", "fernandez", "lopez", "martinez",
         "sanchez", "perez", "gomez", "martin", "jimenez", "ruiz",
-        "hernandez", "diaz", "moreno", "muñoz", "alvarez", "romero"
+        "hernandez", "diaz", "moreno", "muñoz", "alvarez", "romero",
+        "torres", "vazquez", "ramos", "gil", "ramirez", "serrano",
+        "blanco", "suarez", "ortega", "delgado", "castro", "ortiz"
     ]
     
     def __init__(self):
@@ -211,9 +220,14 @@ class PIIValidator:
     
     def detect_names(self, text: str) -> List[Tuple[str, int]]:
         """
-        Detect names in text using common Spanish names.
+        Detect names in text using improved heuristics.
         
-        This is a basic detection. For production, consider using
+        Uses multiple strategies:
+        1. Common Spanish names list (expanded)
+        2. Capitalized words at sentence start or after punctuation
+        3. Pattern: "Nombre Apellido" (two capitalized words together)
+        
+        This is an improved basic detection. For production, consider using
         Presidio or spaCy NER for more accurate detection.
         
         Args:
@@ -225,7 +239,7 @@ class PIIValidator:
         matches = []
         text_lower = text.lower()
         
-        # Check for common names (with word boundaries)
+        # Strategy 1: Check for common names (with word boundaries)
         all_names = self.COMMON_SPANISH_NAMES + self.COMMON_SPANISH_SURNAMES
         
         for name in all_names:
@@ -237,12 +251,78 @@ class PIIValidator:
                 if original_match[0].isupper():
                     matches.append((original_match, match.start()))
         
+        # Strategy 2: Detect capitalized words that look like names
+        # Pattern: Capitalized word at start of sentence or after punctuation
+        # But exclude common words that are capitalized (like "Transición", "Anticipación")
+        common_capitalized_words = [
+            "transición", "transiciones", "cambio", "aprendizaje", "regulación",
+            "anticipación", "mediación", "adaptación", "pausa", "apoyo",
+            "estudiantes", "estudiante", "alumnos", "alumna", "alumno",
+            "todos", "todos", "algunos", "algunas", "muchos", "muchas"
+        ]
+        
+        # Find capitalized words (potential names)
+        # Pattern: Word starting with capital letter, at sentence start or after punctuation
+        capitalized_pattern = r'(?:^|[.!?]\s+)([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?'
+        
+        for match in re.finditer(capitalized_pattern, text):
+            potential_name = match.group(1)
+            potential_name_lower = potential_name.lower()
+            
+            # Skip if it's a common capitalized word (not a name)
+            if potential_name_lower in common_capitalized_words:
+                continue
+            
+            # Skip if it's a known event type or support type
+            if potential_name_lower in ["exitoso", "parcial", "dificultad"]:
+                continue
+            
+            # Skip if it's too short (likely not a name)
+            if len(potential_name) < 3:
+                continue
+            
+            # If it's not in our common names list but looks like a name, check context
+            # Names are usually followed by verbs or at the start of sentences
+            start_pos = match.start(1)
+            end_pos = match.end(1)
+            
+            # Check if followed by common verb patterns (likely a name)
+            context_after = text[end_pos:end_pos+20].lower()
+            name_indicators = [" tuvo", " tuvo", " mostró", " necesitó", " trabajó", " participó"]
+            
+            # Also check for "Nombre y Nombre" pattern (two names)
+            if start_pos > 0:
+                context_before = text[max(0, start_pos-10):start_pos].lower()
+                if " y " in context_before or " con " in context_before:
+                    matches.append((potential_name, start_pos))
+                    continue
+            
+            # If followed by name indicators or at sentence start, likely a name
+            if any(indicator in context_after for indicator in name_indicators) or start_pos == 0:
+                matches.append((potential_name, start_pos))
+        
+        # Strategy 3: Detect "Nombre Apellido" pattern (two capitalized words together)
+        name_surname_pattern = r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\b'
+        for match in re.finditer(name_surname_pattern, text):
+            first_word = match.group(1)
+            second_word = match.group(2)
+            
+            # Skip if either word is in common capitalized words
+            if first_word.lower() in common_capitalized_words or second_word.lower() in common_capitalized_words:
+                continue
+            
+            # If both words are capitalized and not common words, likely "Nombre Apellido"
+            full_name = f"{first_word} {second_word}"
+            matches.append((full_name, match.start()))
+        
         # Remove duplicates while preserving order
         seen = set()
         unique_matches = []
         for match_text, pos in matches:
-            if (match_text.lower(), pos) not in seen:
-                seen.add((match_text.lower(), pos))
+            # Normalize for comparison (ignore case and position)
+            key = (match_text.lower(), pos)
+            if key not in seen:
+                seen.add(key)
                 unique_matches.append((match_text, pos))
         
         return unique_matches
