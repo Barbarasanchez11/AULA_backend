@@ -41,8 +41,8 @@ class VectorStore:
         """
         if chromadb is None:
             raise ImportError(
-                "chromadb no está instalado. "
-                "Instálalo con: pip install chromadb"
+                "chromadb is not installed. "
+                "Install it with: pip install chromadb"
             )
         
         # Set persist directory (default: ./chroma_db in project root)
