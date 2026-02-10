@@ -139,7 +139,8 @@ class EventImporter:
         Raises:
             ValueError: If data is invalid
         """
-        # Required fields
+        # Required fields - Note: classroom_id can be overridden in import_from_csv
+        # This method doesn't handle override, it's handled at import level
         try:
             classroom_id = UUID(row['classroom_id'])
         except (KeyError, ValueError) as e:
@@ -350,13 +351,19 @@ class EventImporter:
         except Exception as e:
             raise Exception(f"Error generating embeddings: {str(e)}") from e
     
-    async def import_from_csv(self, csv_path: str, skip_errors: bool = True) -> Dict:
+    async def import_from_csv(
+        self, 
+        csv_path: str, 
+        skip_errors: bool = True,
+        override_classroom_id: Optional[UUID] = None
+    ) -> Dict:
         """
         Import events from CSV file.
         
         Args:
             csv_path: Path to CSV file
             skip_errors: If True, continue importing even if some events fail
+            override_classroom_id: Optional UUID to override classroom_id from CSV
             
         Returns:
             Dictionary with import statistics
@@ -365,7 +372,8 @@ class EventImporter:
             "total": 0,
             "successful": 0,
             "failed": 0,
-            "errors": []
+            "errors": [],
+            "classroom_id": override_classroom_id
         }
         
         try:
@@ -379,11 +387,18 @@ class EventImporter:
                         # Parse row
                         event_data = self.parse_row(row)
                         
+                        # Override classroom_id if provided
+                        if override_classroom_id:
+                            event_data["classroom_id"] = override_classroom_id
+                        
                         # Import event
                         success, message, event_id = await self.import_event(event_data)
                         
                         if success:
                             results["successful"] += 1
+                            # Store classroom_id from first successful import
+                            if not results.get("classroom_id"):
+                                results["classroom_id"] = event_data["classroom_id"]
                             print(f"✅ Row {row_num}: Event imported (ID: {event_id})")
                         else:
                             results["failed"] += 1
@@ -417,6 +432,48 @@ class EventImporter:
         return results
 
 
+async def find_demo_classroom(session: AsyncSession) -> Optional[UUID]:
+    """Find the AULA_TEA_DEMO classroom by name"""
+    result = await session.execute(
+        select(Classroom).where(Classroom.name == "AULA_TEA_DEMO")
+    )
+    classroom = result.scalar_one_or_none()
+    return classroom.id if classroom else None
+
+
+async def verify_embeddings(session: AsyncSession, classroom_id: UUID) -> Dict:
+    """Verify that embeddings were generated for events"""
+    from app.services.vector_store import VectorStore
+    
+    # Get all events for this classroom
+    result = await session.execute(
+        select(Event).where(Event.classroom_id == classroom_id)
+    )
+    events = result.scalars().all()
+    
+    if not events:
+        return {"total_events": 0, "with_embeddings": 0, "percentage": 0.0}
+    
+    vector_store = VectorStore()
+    
+    # Check quality embeddings (primary)
+    quality_count = vector_store.get_collection_count(classroom_id, "quality")
+    
+    # Check fast embeddings (optional)
+    fast_count = vector_store.get_collection_count(classroom_id, "fast")
+    
+    total_events = len(events)
+    with_embeddings = quality_count
+    
+    return {
+        "total_events": total_events,
+        "with_embeddings": with_embeddings,
+        "quality_embeddings": quality_count,
+        "fast_embeddings": fast_count,
+        "percentage": (with_embeddings / total_events * 100) if total_events > 0 else 0.0
+    }
+
+
 async def main():
     """Main function to run the import"""
     import argparse
@@ -427,6 +484,8 @@ async def main():
                        help='Continue importing even if some events fail (default: True)')
     parser.add_argument('--no-skip-errors', dest='skip_errors', action='store_false',
                        help='Stop importing on first error')
+    parser.add_argument('--use-demo-classroom', action='store_true',
+                       help='Automatically use AULA_TEA_DEMO classroom (overrides CSV classroom_id)')
     
     args = parser.parse_args()
     
@@ -454,10 +513,27 @@ async def main():
     print()
     
     async with async_session() as session:
+        # Handle demo classroom option
+        demo_classroom_id = None
+        if args.use_demo_classroom:
+            print("🔍 Looking for AULA_TEA_DEMO classroom...")
+            demo_classroom_id = await find_demo_classroom(session)
+            if not demo_classroom_id:
+                print("❌ Error: AULA_TEA_DEMO classroom not found!")
+                print("   Please run: python scripts/create_demo_classroom.py first")
+                sys.exit(1)
+            print(f"✅ Found AULA_TEA_DEMO classroom: {demo_classroom_id}")
+            print()
+        
         importer = EventImporter(session)
         
         try:
-            results = await importer.import_from_csv(args.csv_file, skip_errors=args.skip_errors)
+            # Import with optional demo classroom override
+            results = await importer.import_from_csv(
+                args.csv_file, 
+                skip_errors=args.skip_errors,
+                override_classroom_id=demo_classroom_id
+            )
             
             print()
             print("=" * 60)
@@ -472,6 +548,37 @@ async def main():
                 print("Errors:")
                 for error in results['errors']:
                     print(f"  Row {error['row']}: {error['error']}")
+            
+            # Verify embeddings if import was successful
+            if results['successful'] > 0:
+                # Get classroom_id from results or use demo classroom
+                classroom_id = demo_classroom_id
+                if not classroom_id:
+                    # Try to get from first successful event
+                    # We'll need to track this in the import process
+                    pass
+                
+                # Use classroom_id from results or demo classroom
+                classroom_id = results.get("classroom_id") or demo_classroom_id
+                
+                if classroom_id:
+                    print()
+                    print("=" * 60)
+                    print("EMBEDDING VERIFICATION")
+                    print("=" * 60)
+                    embedding_stats = await verify_embeddings(session, classroom_id)
+                    print(f"Total events in database: {embedding_stats['total_events']}")
+                    print(f"Events with quality embeddings: {embedding_stats['quality_embeddings']}")
+                    print(f"Events with fast embeddings: {embedding_stats['fast_embeddings']}")
+                    print(f"Embedding coverage: {embedding_stats['percentage']:.1f}%")
+                    
+                    if embedding_stats['percentage'] >= 95.0:
+                        print("✅ Embeddings generated successfully!")
+                    elif embedding_stats['percentage'] >= 80.0:
+                        print("⚠️  Most embeddings generated, but some may be missing")
+                    else:
+                        print("❌ Warning: Many embeddings are missing")
+                    print("=" * 60)
             
             print("=" * 60)
             
