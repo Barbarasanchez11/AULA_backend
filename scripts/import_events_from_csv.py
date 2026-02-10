@@ -70,10 +70,12 @@ class EventImporter:
     
     def parse_supports(self, supports_str: str) -> List[str]:
         """
-        Parse supports string (comma-separated) into list.
+        Parse supports string (comma or semicolon-separated) into list.
+        
+        Supports both comma (,) and semicolon (;) as separators.
         
         Args:
-            supports_str: Comma-separated string of supports
+            supports_str: Comma or semicolon-separated string of supports
             
         Returns:
             List of support strings

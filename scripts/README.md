@@ -20,7 +20,7 @@ El CSV debe tener las siguientes columnas:
 | `moment_of_day` | ✅ Sí | Momento del día | `mañana`, `mediodia`, `tarde` |
 | `day_of_week` | ❌ No | Día de la semana | `lunes`, `martes`, `miercoles`, `jueves`, `viernes`, `sabado`, `domingo` |
 | `duration_minutes` | ❌ No | Duración en minutos | Número entero >= 1 |
-| `supports` | ✅ Sí | Apoyos utilizados | Lista separada por `;` o `,` de: `Anticipación visual`, `Adaptación del entorno`, `Mediación verbal`, `Pausa sensorial`, `Apoyo individual del adulto` |
+| `supports` | ✅ Sí | Apoyos utilizados | Lista separada por `;` o `,` de: `Anticipación visual`, `Adaptación del entorno`, `Mediación verbal`, `Pausa sensorial`, `Apoyo individual del adulto`. Ejemplo: `Anticipación visual;Mediación verbal` o `Anticipación visual,Mediación verbal` |
 | `additional_supports` | ❌ No | Apoyos adicionales | Texto libre (máx 200 caracteres) |
 | `result` | ✅ Sí | Resultado del evento | `EXITOSO`, `PARCIAL`, `DIFICULTAD` |
 | `observations` | ❌ No | Observaciones | Texto libre (máx 1000 caracteres) |
