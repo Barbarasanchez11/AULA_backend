@@ -57,10 +57,23 @@ async def search_semantic(query_text: str, classroom_id: UUID, top_k: int = 3, m
     embedding_service = EmbeddingService.get_instance()
     vector_store = VectorStore()
     
+    # Check if collection has any embeddings
+    collection = vector_store.get_or_create_collection(classroom_id, model_type)
+    collection_count = collection.count()
+    
+    if collection_count == 0:
+        print(f"⚠️  Warning: No embeddings found in ChromaDB for classroom {classroom_id} (model: {model_type})")
+        print(f"   Collection count: {collection_count}")
+        print(f"   Make sure events have been imported and embeddings generated.")
+        return []
+    
+    print(f"   Found {collection_count} embeddings in ChromaDB")
+    
     # Generate embedding for the query text
     query_embedding = embedding_service.generate_quality_embedding(query_text) if model_type == "quality" else embedding_service.generate_fast_embedding(query_text)
     
     # Search for similar events
+    print(f"   Searching for similar events...")
     similar_results = vector_store.search_similar_events(
         classroom_id=classroom_id,
         query_embedding=query_embedding,
@@ -68,6 +81,18 @@ async def search_semantic(query_text: str, classroom_id: UUID, top_k: int = 3, m
         model_type=model_type,
         min_similarity=0.0
     )
+    
+    print(f"   Search returned {len(similar_results)} results")
+    
+    if not similar_results:
+        print(f"   ⚠️  No results found. Collection has {collection_count} embeddings.")
+        # Try to get some sample IDs to debug
+        try:
+            sample_results = collection.get(limit=3)
+            if sample_results['ids']:
+                print(f"   Sample event IDs in collection: {sample_results['ids'][:3]}")
+        except Exception as e:
+            print(f"   Could not get sample IDs: {e}")
     
     # Get full event details from database
     async with AsyncSessionLocal() as session:
