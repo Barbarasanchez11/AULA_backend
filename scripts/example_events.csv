@@ -1,0 +1,8 @@
+classroom_id,event_type,description,moment_of_day,day_of_week,duration_minutes,supports,additional_supports,result,observations
+ef2d0843-3594-4cf7-89d6-e838a797f57c,TRANSICION,Transición de juego libre a asamblea matutina,mañana,lunes,5,Anticipación visual,Anticipación visual mediante pictogramas,EXITOSO,Todos se incorporaron sin dificultades
+ef2d0843-3594-4cf7-89d6-e838a797f57c,TRANSICION,Transición del patio al aula después del recreo,mediodia,martes,3,Anticipación visual;Mediación verbal,,EXITOSO,La anticipación visual facilitó la transición
+ef2d0843-3594-4cf7-89d6-e838a797f57c,APRENDIZAJE,Actividad de trabajo en mesa individual,mañana,miercoles,20,Adaptación del entorno;Apoyo individual del adulto,Mesa con separadores visuales,PARCIAL,Algunos estudiantes necesitaron apoyo adicional
+ef2d0843-3594-4cf7-89d6-e838a797f57c,REGULACION,Momento de calma después de actividad ruidosa,tarde,jueves,10,Pausa sensorial;Adaptación del entorno,Espacio tranquilo con cojines,EXITOSO,El espacio de calma fue muy efectivo
+ef2d0843-3594-4cf7-89d6-e838a797f57c,CAMBIO_DE_RUTINA,Cambio inesperado de horario de recreo,mañana,viernes,,Anticipación visual;Mediación verbal,Explicación verbal del cambio,DIFICULTAD,Algunos estudiantes mostraron resistencia al cambio
+ef2d0843-3594-4cf7-89d6-e838a797f57c,TRANSICION,Transición de actividad grupal a trabajo individual,mañana,lunes,5,Anticipación visual;Mediación verbal,,EXITOSO,La combinación de apoyos funcionó muy bien
+
