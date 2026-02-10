@@ -11,6 +11,8 @@ from app.schemas.enums import EventType, EventResult, MomentOfDay, DayOfWeek, Su
 from app.services.embeddingService import EmbeddingService
 from app.services.vector_store import VectorStore
 from app.services.pattern_analysis import PatternAnalysisService
+from app.services.text_normalizer import TextNormalizer
+from app.services.pii_validator import PIIValidator
 
 router = APIRouter(
     prefix="/events",
@@ -329,16 +331,53 @@ async def update_event(
         ]
         embedding_fields_updated = True
     
-    # Update remaining fields
+    # Normalize and validate text fields if they are being updated
+    normalizer = TextNormalizer()
+    pii_validator = PIIValidator()
+    
+    # Prepare normalized and validated text fields
     if "description" in update_data and update_data["description"] is not None:
         embedding_fields_updated = True
+        # Normalize
+        normalized_description = normalizer.normalize_text(update_data["description"])
+        # Validate PII
+        pii_result = pii_validator.validate_text(normalized_description, context="description")
+        if not pii_result.is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=pii_result.get_error_message()
+            )
+        db_event.description = normalized_description
+    
     if "additional_supports" in update_data and update_data["additional_supports"] is not None:
         embedding_fields_updated = True
+        # Normalize
+        normalized_additional_supports = normalizer.normalize_text(update_data["additional_supports"])
+        # Validate PII
+        pii_result = pii_validator.validate_text(normalized_additional_supports, context="additional_supports")
+        if not pii_result.is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=pii_result.get_error_message()
+            )
+        db_event.additional_supports = normalized_additional_supports
+    
     if "observations" in update_data and update_data["observations"] is not None:
         embedding_fields_updated = True
+        # Normalize
+        normalized_observations = normalizer.normalize_text(update_data["observations"])
+        # Validate PII
+        pii_result = pii_validator.validate_text(normalized_observations, context="observations")
+        if not pii_result.is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=pii_result.get_error_message()
+            )
+        db_event.observations = normalized_observations
     
+    # Update other fields
     for field, value in update_data.items():
-        if value is not None:
+        if value is not None and field not in ["description", "additional_supports", "observations"]:
             setattr(db_event, field, value)
     
     await db.commit()
@@ -346,18 +385,19 @@ async def update_event(
     
     # Regenerate embeddings if embedding-relevant fields were updated
     if embedding_fields_updated:
+        # Use normalized values for embeddings
         background_tasks.add_task(
             _generate_and_store_embeddings,
             event_id=db_event.id,
             classroom_id=db_event.classroom_id,
             event_type=db_event.event_type,
-            description=db_event.description,
+            description=db_event.description,  # Already normalized
             moment_of_day=db_event.moment_of_day,
             day_of_week=db_event.day_of_week,
             supports=db_event.supports,
             result=db_event.result,
-            additional_supports=db_event.additional_supports,
-            observations=db_event.observations
+            additional_supports=db_event.additional_supports,  # Already normalized
+            observations=db_event.observations  # Already normalized
         )
     
     return event_model_to_response(db_event)
@@ -515,19 +555,42 @@ async def create_event(
     if not classroom:
         raise HTTPException(status_code=404, detail="Classroom not found")
     
+    # Normalize text fields
+    normalizer = TextNormalizer()
+    normalized = normalizer.normalize_event_text(
+        description=event.description,
+        additional_supports=event.additional_supports,
+        observations=event.observations
+    )
+    
+    # Validate PII (check for personal data)
+    pii_validator = PIIValidator()
+    pii_result = pii_validator.validate_event_text(
+        description=normalized["description"],
+        additional_supports=normalized["additional_supports"],
+        observations=normalized["observations"]
+    )
+    
+    if not pii_result.is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=pii_result.get_error_message()
+        )
+    
     # Convert EventContext to separate fields
     # Convert List[SupportType] to JSON array of strings
+    # Use normalized text instead of original
     db_event = Event(
         classroom_id=event.classroom_id,
         event_type=event.event_type.value,
-        description=event.description,
+        description=normalized["description"],
         moment_of_day=event.context.moment_of_day.value,
         day_of_week=event.context.day_of_week.value if event.context.day_of_week else None,
         duration_minutes=event.context.duration_minutes,
         supports=[support.value for support in event.supports],
-        additional_supports=event.additional_supports,
+        additional_supports=normalized["additional_supports"],
         result=event.result.value,
-        observations=event.observations
+        observations=normalized["observations"]
     )
     
     db.add(db_event)
