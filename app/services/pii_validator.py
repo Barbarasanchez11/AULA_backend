@@ -266,8 +266,12 @@ class PIIValidator:
         ]
         has_educational_context = any(phrase in text_lower_full for phrase in educational_phrases)
         
+        # If text contains educational context, remove educational words from detection list
+        if has_educational_context:
+            all_names = [n for n in all_names if n.lower() not in educational_words]
+        
         for name in all_names:
-            # Skip educational words when in educational contexts
+            # Skip educational words when in educational contexts (shouldn't happen if removed above, but safety check)
             if name.lower() in educational_words:
                 # If the text contains educational phrases, skip all educational word detections
                 if has_educational_context:
@@ -320,8 +324,17 @@ class PIIValidator:
             "anticipación", "mediación", "adaptación", "pausa", "apoyo",
             "estudiantes", "estudiante", "alumnos", "alumna", "alumno",
             "todos", "todos", "algunos", "algunas", "muchos", "muchas",
-            "observaciones", "observación", "resultado", "resultados"
+            "observaciones", "observación", "resultado", "resultados",
+            # Common articles and determiners (should not be flagged as names)
+            "los", "las", "el", "la", "un", "una", "unos", "unas",
+            "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas",
+            "aquel", "aquella", "aquellos", "aquellas"
         ]
+        
+        # If text has educational context, also exclude educational words from Strategy 2
+        if has_educational_context:
+            # Educational words are already in common_capitalized_words, but ensure they're excluded
+            pass  # They're already there, so they'll be skipped
         
         # Also exclude "estudiante" when it appears in patterns like "(estudiante EST001)"
         # This is a common pattern in synthetic data that should not be flagged
