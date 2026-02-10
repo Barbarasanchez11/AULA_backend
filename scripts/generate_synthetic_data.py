@@ -1,17 +1,3 @@
-#!/usr/bin/env python3
-"""
-Generador de Datos Sintéticos para Aula TEA
-
-Genera eventos sintéticos realistas basados en literatura pedagógica sobre aulas TEA.
-Incluye patrones detectables para validar el sistema de análisis de patrones.
-
-Basado en:
-- Literatura sobre apoyos pedagógicos TEA
-- Tipos de eventos comunes en aulas TEA
-- Distribución realista de resultados
-- Patrones temporales y de efectividad
-"""
-
 import csv
 import random
 import uuid
@@ -19,13 +5,13 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
 from collections import Counter
 
-# Configuración
-NUM_EVENTOS = 50
-CLASSROOM_ID = "ef2d0843-3594-4cf7-89d6-e838a797f57c"  # ID de aula de ejemplo (cambiar si es necesario)
-ESTUDIANTES = ["EST001", "EST002", "EST003", "EST004", "EST005"]
+# Configuration
+NUM_EVENTS = 50
+CLASSROOM_ID = "ef2d0843-3594-4cf7-89d6-e838a797f57c"  # Example classroom ID (change if needed)
+STUDENTS = ["EST001", "EST002", "EST003", "EST004", "EST005"]
 
-# Tipos de eventos y sus descripciones realistas
-TIPOS_EVENTOS = {
+# Event types and their realistic descriptions
+EVENT_TYPES = {
     "TRANSICION": [
         "Transición de juego libre a asamblea matutina",
         "Transición del patio al aula después del recreo",
@@ -68,8 +54,8 @@ TIPOS_EVENTOS = {
     ],
 }
 
-# Apoyos predefinidos del sistema
-APOYOS_PREDEFINIDOS = [
+# Predefined supports from the system
+PREDEFINED_SUPPORTS = [
     "Anticipación visual",
     "Adaptación del entorno",
     "Mediación verbal",
@@ -77,8 +63,8 @@ APOYOS_PREDEFINIDOS = [
     "Apoyo individual del adulto",
 ]
 
-# Apoyos adicionales (texto libre) basados en literatura TEA
-APOYOS_ADICIONALES = [
+# Additional supports (free text) based on TEA literature
+ADDITIONAL_SUPPORTS = [
     "Rincón de calma con cojines y luces tenues",
     "Pictogramas de secuencia de actividades",
     "Historia social sobre la transición",
@@ -93,8 +79,8 @@ APOYOS_ADICIONALES = [
     "Soporte de comunicación aumentativa",
 ]
 
-# Observaciones realistas
-OBSERVACIONES_EXITOSO = [
+# Realistic observations
+OBSERVATIONS_SUCCESS = [
     "Todos se incorporaron sin dificultades",
     "La anticipación visual facilitó la transición",
     "El espacio de calma fue muy efectivo",
@@ -107,7 +93,7 @@ OBSERVACIONES_EXITOSO = [
     "Se logró una regulación emocional adecuada",
 ]
 
-OBSERVACIONES_PARCIAL = [
+OBSERVATIONS_PARTIAL = [
     "Algunos estudiantes necesitaron apoyo adicional",
     "Funcionó bien para la mayoría, pero hubo excepciones",
     "Requiere ajustes en la implementación",
@@ -118,7 +104,7 @@ OBSERVACIONES_PARCIAL = [
     "La efectividad varió según el estudiante",
 ]
 
-OBSERVACIONES_DIFICULTAD = [
+OBSERVATIONS_DIFFICULTY = [
     "Algunos estudiantes mostraron resistencia al cambio",
     "Se observó aumento de conductas de evitación",
     "Fue necesario interrumpir la actividad",
@@ -129,9 +115,9 @@ OBSERVACIONES_DIFICULTAD = [
     "Fue necesario modificar el enfoque durante la actividad",
 ]
 
-# Patrones intencionales para que la IA los detecte
-# Algunos apoyos son más efectivos que otros
-EFECTIVIDAD_APOYOS = {
+# Intentional patterns for AI to detect
+# Some supports are more effective than others
+SUPPORT_EFFECTIVENESS = {
     "Anticipación visual": 0.85,  # Muy efectivo
     "Pausa sensorial": 0.90,  # Muy efectivo
     "Adaptación del entorno": 0.75,  # Moderadamente efectivo
@@ -139,18 +125,18 @@ EFECTIVIDAD_APOYOS = {
     "Apoyo individual del adulto": 0.80,  # Efectivo
 }
 
-# Momentos del día más difíciles
-MOMENTOS_CRITICOS = {
+# Most difficult times of day
+CRITICAL_MOMENTS = {
     "mañana": 0.30,  # 30% de eventos en mañana (algunos más difíciles)
     "mediodia": 0.25,  # 25% en mediodía
     "tarde": 0.45,  # 45% en tarde (más eventos, algunos más difíciles)
 }
 
-# Días de la semana
-DIAS_SEMANA = ["lunes", "martes", "miercoles", "jueves", "viernes"]
 
-# Tipos de eventos más problemáticos
-EVENTOS_PROBLEMATICOS = {
+DAYS_OF_WEEK = ["lunes", "martes", "miercoles", "jueves", "viernes"]
+
+# Most problematic event types
+PROBLEMATIC_EVENTS = {
     "CAMBIO_DE_RUTINA": 0.40,  # 40% de dificultad
     "REGULACION": 0.30,  # 30% de dificultad
     "TRANSICION": 0.15,  # 15% de dificultad
@@ -158,55 +144,55 @@ EVENTOS_PROBLEMATICOS = {
 }
 
 
-def generar_resultado(event_type: str, apoyos: List[str]) -> str:
+def generate_result(event_type: str, supports: List[str]) -> str:
     """
-    Genera un resultado basado en el tipo de evento y los apoyos utilizados.
-    Incluye patrones intencionales para que la IA los detecte.
+    Generate a result based on event type and supports used.
+    Includes intentional patterns for AI to detect.
     """
-    # Calcular efectividad base según apoyos
-    efectividad_base = sum(EFECTIVIDAD_APOYOS.get(apoyo, 0.5) for apoyo in apoyos) / len(apoyos)
+    # Calculate base effectiveness based on supports
+    base_effectiveness = sum(SUPPORT_EFFECTIVENESS.get(apoyo, 0.5) for apoyo in apoyos) / len(apoyos)
     
-    # Ajustar según tipo de evento
-    probabilidad_dificultad = EVENTOS_PROBLEMATICOS.get(event_type, 0.15)
+    # Adjust based on event type
+    difficulty_probability = PROBLEMATIC_EVENTS.get(event_type, 0.15)
     
-    # Generar resultado con distribución objetivo: 70% exitoso, 20% parcial, 10% dificultad
+    # Generate result with target distribution: 70% successful, 20% partial, 10% difficulty
     rand = random.random()
     
-    if rand < 0.70:  # 70% exitoso
-        # Ajustar según efectividad
-        if efectividad_base > 0.80:
+    if rand < 0.70:  # 70% successful
+        # Adjust based on effectiveness
+        if base_effectiveness > 0.80:
             return "EXITOSO"
-        elif efectividad_base > 0.65:
-            return random.choice(["EXITOSO", "EXITOSO", "PARCIAL"])  # 66% exitoso, 33% parcial
+        elif base_effectiveness > 0.65:
+            return random.choice(["EXITOSO", "EXITOSO", "PARCIAL"])  # 66% successful, 33% partial
         else:
-            return random.choice(["EXITOSO", "PARCIAL", "PARCIAL"])  # 33% exitoso, 66% parcial
-    elif rand < 0.90:  # 20% parcial
+            return random.choice(["EXITOSO", "PARCIAL", "PARCIAL"])  # 33% successful, 66% partial
+    elif rand < 0.90:  # 20% partial
         return "PARCIAL"
-    else:  # 10% dificultad
+    else:  # 10% difficulty
         return "DIFICULTAD"
 
 
-def generar_evento(classroom_id: str, estudiante: str, evento_num: int) -> Dict:
-    """Genera un evento sintético realista"""
+def generate_event(classroom_id: str, student: str, event_num: int) -> Dict:
+    """Generate a realistic synthetic event"""
     
-    # Seleccionar tipo de evento
-    event_type = random.choice(list(TIPOS_EVENTOS.keys()))
-    description = random.choice(TIPOS_EVENTOS[event_type])
+    # Select event type
+    event_type = random.choice(list(EVENT_TYPES.keys()))
+    description = random.choice(EVENT_TYPES[event_type])
     
-    # Añadir referencia al estudiante de forma anonimizada
-    if random.random() < 0.3:  # 30% de eventos mencionan estudiante
-        description = f"{description} (estudiante {estudiante})"
+    # Add anonymized student reference
+    if random.random() < 0.3:  # 30% of events mention student
+        description = f"{description} (estudiante {student})"
     
-    # Seleccionar momento del día según distribución
+    # Select moment of day according to distribution
     moment_of_day = random.choices(
-        list(MOMENTOS_CRITICOS.keys()),
-        weights=list(MOMENTOS_CRITICOS.values())
+        list(CRITICAL_MOMENTS.keys()),
+        weights=list(CRITICAL_MOMENTS.values())
     )[0]
     
-    # Seleccionar día de la semana
-    day_of_week = random.choice(DIAS_SEMANA)
+    # Select day of week
+    day_of_week = random.choice(DAYS_OF_WEEK)
     
-    # Duración (opcional, 60% de eventos tienen duración)
+    # Duration (optional, 60% of events have duration)
     duration_minutes = None
     if random.random() < 0.6:
         if event_type == "TRANSICION":
@@ -218,25 +204,25 @@ def generar_evento(classroom_id: str, estudiante: str, evento_num: int) -> Dict:
         else:  # CAMBIO_DE_RUTINA
             duration_minutes = random.randint(5, 15)
     
-    # Seleccionar apoyos (1-3 apoyos)
-    num_apoyos = random.choices([1, 2, 3], weights=[0.4, 0.4, 0.2])[0]
-    apoyos = random.sample(APOYOS_PREDEFINIDOS, num_apoyos)
+    # Select supports (1-3 supports)
+    num_supports = random.choices([1, 2, 3], weights=[0.4, 0.4, 0.2])[0]
+    supports = random.sample(PREDEFINED_SUPPORTS, num_supports)
     
-    # Apoyo adicional (40% de eventos tienen apoyo adicional)
+    # Additional support (40% of events have additional support)
     additional_supports = None
     if random.random() < 0.4:
-        additional_supports = random.choice(APOYOS_ADICIONALES)
+        additional_supports = random.choice(ADDITIONAL_SUPPORTS)
     
-    # Generar resultado basado en patrones
-    result = generar_resultado(event_type, apoyos)
+    # Generate result based on patterns
+    result = generate_result(event_type, supports)
     
-    # Observaciones según resultado
+    # Observations according to result
     if result == "EXITOSO":
-        observations = random.choice(OBSERVACIONES_EXITOSO)
+        observations = random.choice(OBSERVATIONS_SUCCESS)
     elif result == "PARCIAL":
-        observations = random.choice(OBSERVACIONES_PARCIAL)
+        observations = random.choice(OBSERVATIONS_PARTIAL)
     else:  # DIFICULTAD
-        observations = random.choice(OBSERVACIONES_DIFICULTAD)
+        observations = random.choice(OBSERVATIONS_DIFFICULTY)
     
     return {
         "classroom_id": classroom_id,
@@ -245,29 +231,29 @@ def generar_evento(classroom_id: str, estudiante: str, evento_num: int) -> Dict:
         "moment_of_day": moment_of_day,
         "day_of_week": day_of_week,
         "duration_minutes": duration_minutes,
-        "supports": ";".join(apoyos),
+        "supports": ";".join(supports),
         "additional_supports": additional_supports,
         "result": result,
         "observations": observations,
     }
 
 
-def generar_eventos_sinteticos(num_eventos: int, classroom_id: str) -> List[Dict]:
-    """Genera una lista de eventos sintéticos"""
-    eventos = []
+def generate_synthetic_events(num_events: int, classroom_id: str) -> List[Dict]:
+    """Generate a list of synthetic events"""
+    events = []
     
-    for i in range(num_eventos):
-        # Rotar entre estudiantes para variabilidad
-        estudiante = ESTUDIANTES[i % len(ESTUDIANTES)]
-        evento = generar_evento(classroom_id, estudiante, i + 1)
-        eventos.append(evento)
+    for i in range(num_events):
+        # Rotate between students for variability
+        student = STUDENTS[i % len(STUDENTS)]
+        event = generate_event(classroom_id, student, i + 1)
+        events.append(event)
     
-    return eventos
+    return events
 
 
-def guardar_csv(eventos: List[Dict], filename: str):
-    """Guarda los eventos en un archivo CSV"""
-    if not eventos:
+def save_csv(events: List[Dict], filename: str):
+    """Save events to a CSV file"""
+    if not events:
         return
     
     fieldnames = [
@@ -286,99 +272,98 @@ def guardar_csv(eventos: List[Dict], filename: str):
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(eventos)
+        writer.writerows(events)
     
-    print(f"✅ Archivo CSV guardado: {filename}")
+    print(f"✅ CSV file saved: {filename}")
 
 
-def mostrar_resumen(eventos: List[Dict]):
-    """Muestra un resumen de los eventos generados"""
+def show_summary(events: List[Dict]):
+    """Show a summary of generated events"""
     print("\n" + "="*60)
-    print("RESUMEN DE EVENTOS SINTÉTICOS GENERADOS")
+    print("SYNTHETIC EVENTS GENERATION SUMMARY")
     print("="*60)
     
-    print(f"\n📊 Total de eventos: {len(eventos)}")
+    print(f"\n📊 Total events: {len(events)}")
     
-    # Distribución por tipo
-    tipos = Counter(e["event_type"] for e in eventos)
-    print("\n📋 Distribución por tipo de evento:")
-    for tipo, count in tipos.most_common():
-        porcentaje = (count / len(eventos)) * 100
-        print(f"   - {tipo}: {count} ({porcentaje:.1f}%)")
+    # Distribution by type
+    types = Counter(e["event_type"] for e in events)
+    print("\n📋 Distribution by event type:")
+    for event_type, count in types.most_common():
+        percentage = (count / len(events)) * 100
+        print(f"   - {event_type}: {count} ({percentage:.1f}%)")
     
-    # Distribución por resultado
-    resultados = Counter(e["result"] for e in eventos)
-    print("\n✅ Distribución por resultado:")
-    for resultado, count in resultados.most_common():
-        porcentaje = (count / len(eventos)) * 100
-        print(f"   - {resultado}: {count} ({porcentaje:.1f}%)")
+    # Distribution by result
+    results = Counter(e["result"] for e in events)
+    print("\n✅ Distribution by result:")
+    for result, count in results.most_common():
+        percentage = (count / len(events)) * 100
+        print(f"   - {result}: {count} ({percentage:.1f}%)")
     
-    # Distribución por momento del día
-    momentos = Counter(e["moment_of_day"] for e in eventos)
-    print("\n⏰ Distribución por momento del día:")
-    for momento, count in momentos.most_common():
-        porcentaje = (count / len(eventos)) * 100
-        print(f"   - {momento}: {count} ({porcentaje:.1f}%)")
+    # Distribution by moment of day
+    moments = Counter(e["moment_of_day"] for e in events)
+    print("\n⏰ Distribution by moment of day:")
+    for moment, count in moments.most_common():
+        percentage = (count / len(events)) * 100
+        print(f"   - {moment}: {count} ({percentage:.1f}%)")
     
-    # Apoyos más utilizados
-    todos_apoyos = []
-    for evento in eventos:
-        todos_apoyos.extend(evento["supports"].split(";"))
-    apoyos_count = Counter(todos_apoyos)
-    print("\n🛠️  Apoyos más utilizados:")
-    for apoyo, count in apoyos_count.most_common(5):
-        porcentaje = (count / len(eventos)) * 100
-        print(f"   - {apoyo}: {count} veces ({porcentaje:.1f}% de eventos)")
+    # Most used supports
+    all_supports = []
+    for event in events:
+        all_supports.extend(event["supports"].split(";"))
+    supports_count = Counter(all_supports)
+    print("\n🛠️  Most used supports:")
+    for support, count in supports_count.most_common(5):
+        percentage = (count / len(events)) * 100
+        print(f"   - {support}: {count} times ({percentage:.1f}% of events)")
     
-    # Efectividad de apoyos (patrón intencional)
-    print("\n📈 Efectividad de apoyos (patrón intencional):")
-    for apoyo in APOYOS_PREDEFINIDOS:
-        eventos_con_apoyo = [e for e in eventos if apoyo in e["supports"]]
-        if eventos_con_apoyo:
-            exitosos = sum(1 for e in eventos_con_apoyo if e["result"] == "EXITOSO")
-            total = len(eventos_con_apoyo)
-            tasa_exito = (exitosos / total) * 100 if total > 0 else 0
-            print(f"   - {apoyo}: {tasa_exito:.1f}% éxito ({exitosos}/{total} eventos)")
+    # Support effectiveness (intentional pattern)
+    print("\n📈 Support effectiveness (intentional pattern):")
+    for support in PREDEFINED_SUPPORTS:
+        events_with_support = [e for e in events if support in e["supports"]]
+        if events_with_support:
+            successful = sum(1 for e in events_with_support if e["result"] == "EXITOSO")
+            total = len(events_with_support)
+            success_rate = (successful / total) * 100 if total > 0 else 0
+            print(f"   - {support}: {success_rate:.1f}% success ({successful}/{total} events)")
     
-    # Eventos con apoyo adicional
-    con_apoyo_adicional = sum(1 for e in eventos if e["additional_supports"])
-    print(f"\n➕ Eventos con apoyo adicional: {con_apoyo_adicional} ({con_apoyo_adicional/len(eventos)*100:.1f}%)")
+    # Events with additional support
+    with_additional = sum(1 for e in events if e["additional_supports"])
+    print(f"\n➕ Events with additional support: {with_additional} ({with_additional/len(events)*100:.1f}%)")
     
-    # Eventos con duración
-    con_duracion = sum(1 for e in eventos if e["duration_minutes"])
-    print(f"⏱️  Eventos con duración registrada: {con_duracion} ({con_duracion/len(eventos)*100:.1f}%)")
+    # Events with duration
+    with_duration = sum(1 for e in events if e["duration_minutes"])
+    print(f"⏱️  Events with recorded duration: {with_duration} ({with_duration/len(events)*100:.1f}%)")
     
     print("\n" + "="*60)
-    print("✅ Datos sintéticos generados correctamente")
+    print("✅ Synthetic data generated successfully")
     print("="*60 + "\n")
 
 
 def main():
-    """Función principal"""
-    print("🎲 Generador de Datos Sintéticos para Aula TEA")
+    """Main function"""
+    print("🎲 Synthetic Data Generator for TEA Classroom")
     print("="*60)
-    print(f"\nGenerando {NUM_EVENTOS} eventos sintéticos...")
-    print("Basado en literatura pedagógica sobre aulas TEA\n")
+    print(f"\nGenerating {NUM_EVENTS} synthetic events...")
+    print("Based on pedagogical literature about TEA classrooms\n")
     
-    # Generar eventos
-    eventos = generar_eventos_sinteticos(NUM_EVENTOS, CLASSROOM_ID)
+    # Generate events
+    events = generate_synthetic_events(NUM_EVENTS, CLASSROOM_ID)
     
-    # Guardar en CSV
+    # Save to CSV
     filename = "synthetic_events_tea.csv"
-    guardar_csv(eventos, filename)
+    save_csv(events, filename)
     
-    # Mostrar resumen
-    mostrar_resumen(eventos)
+    # Show summary
+    show_summary(events)
     
-    print(f"💡 Próximos pasos:")
-    print(f"   1. Revisa el archivo: {filename}")
-    print(f"   2. Importa los datos: python scripts/import_events_from_csv.py {filename}")
-    print(f"   3. Valida los patrones: GET /events/patterns?classroom_id={CLASSROOM_ID}")
-    print(f"   4. Genera recomendaciones: POST /recommendations/generate?classroom_id={CLASSROOM_ID}\n")
+    print(f"💡 Next steps:")
+    print(f"   1. Review the file: {filename}")
+    print(f"   2. Import the data: python scripts/import_events_from_csv.py {filename}")
+    print(f"   3. Validate patterns: GET /events/patterns?classroom_id={CLASSROOM_ID}")
+    print(f"   4. Generate recommendations: POST /recommendations/generate?classroom_id={CLASSROOM_ID}\n")
 
 
 if __name__ == "__main__":
-    # Fijar semilla para reproducibilidad (opcional, comentar para variabilidad)
-    # random.seed(42)
+    
     main()
 

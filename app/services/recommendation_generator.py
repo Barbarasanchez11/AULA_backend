@@ -1,10 +1,3 @@
-"""
-Recommendation Generator Service for AULA+
-
-This service generates pedagogical recommendations based on detected patterns.
-Uses pattern analysis results to create actionable recommendations with confidence scores.
-"""
-
 from typing import List, Dict, Any, Optional
 from uuid import UUID
 from app.services.pattern_analysis import PatternAnalysisService

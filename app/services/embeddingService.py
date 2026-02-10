@@ -46,7 +46,7 @@ class EmbeddingService:
             Exception: If an instance already exists (Singleton pattern).
         """
         if EmbeddingService._instance is not None:
-            raise Exception("EmbeddingService ya está inicializado. Usa get_instance() en su lugar.")
+            raise Exception("EmbeddingService is already initialized. Use get_instance() instead.")
         EmbeddingService._instance = self
     
     @staticmethod
