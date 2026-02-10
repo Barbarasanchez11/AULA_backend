@@ -95,16 +95,27 @@ class VectorStore:
             # Try to get existing collection
             collection = self.client.get_collection(name=collection_name)
             print(f"   [DEBUG] Retrieved existing collection: {collection_name}")
+            # Check if collection uses cosine distance
+            collection_metadata = collection.metadata
+            if collection_metadata.get("hnsw:space") != "cosine":
+                print(f"   [DEBUG] WARNING: Collection is not using cosine distance!")
+                print(f"   [DEBUG] Current metadata: {collection_metadata}")
+                print(f"   [DEBUG] This may cause incorrect similarity calculations.")
         except Exception as e:
             # Collection doesn't exist, create it
             print(f"   [DEBUG] Collection doesn't exist, creating: {collection_name} (error: {e})")
             # When creating a collection without an embedding function,
             # ChromaDB will use the embeddings we provide directly
+            # IMPORTANT: Explicitly set cosine distance for semantic similarity
             collection = self.client.create_collection(
                 name=collection_name,
-                metadata={"classroom_id": str(classroom_id), "model_type": model_type}
+                metadata={
+                    "classroom_id": str(classroom_id),
+                    "model_type": model_type,
+                    "hnsw:space": "cosine"  # Use cosine distance for semantic similarity
+                }
             )
-            print(f"   [DEBUG] Created new collection: {collection_name}")
+            print(f"   [DEBUG] Created new collection: {collection_name} with cosine distance")
         
         return collection
     
@@ -305,9 +316,21 @@ class VectorStore:
             print(f"   [DEBUG] Similarity for result {i}: {similarity} (distance: {distance})")
             
             # Apply minimum similarity threshold if specified
-            if min_similarity is not None and similarity < min_similarity:
-                print(f"   [DEBUG] Similarity {similarity} below threshold {min_similarity}, skipping")
-                continue
+            # Note: For L2 distance with negative scores, min_similarity logic needs adjustment
+            if min_similarity is not None:
+                if distance_metric == "l2" or distance_metric == "euclidean":
+                    # For L2, similarity is negative, so we check if distance is too large
+                    # Convert min_similarity threshold to max_distance
+                    # If min_similarity = 0.0, accept all (no filtering)
+                    if min_similarity > 0.0:
+                        # Rough conversion: if we want similarity > 0.5, that means distance < some threshold
+                        # For now, skip filtering for L2 or use a different approach
+                        print(f"   [DEBUG] L2 metric detected, skipping min_similarity filter (not applicable)")
+                else:
+                    # For cosine, use normal threshold
+                    if similarity < min_similarity:
+                        print(f"   [DEBUG] Similarity {similarity} below threshold {min_similarity}, skipping")
+                        continue
             
             # Get metadata - same structure as ids and distances
             metadatas_list = results.get('metadatas', [])
