@@ -309,11 +309,32 @@ class VectorStore:
                 print(f"⚠️  No distance found for result {i}, skipping")
                 continue
             
-            # Convert cosine distance to similarity
-            # ChromaDB uses cosine distance: range [0, 2]
-            # Similarity = 1 - (distance / 2) gives range [0, 1]
-            similarity = 1.0 - (distance / 2.0)
-            print(f"   [DEBUG] Similarity for result {i}: {similarity} (distance: {distance})")
+            # Check collection metadata to determine distance metric
+            collection_metadata = collection.metadata or {}
+            distance_metric = collection_metadata.get("hnsw:space", None)
+            
+            # Auto-detect metric if not explicitly set: if distance > 2, it's likely L2
+            if distance_metric not in ["cosine", "l2", "euclidean"]:
+                if distance > 2.0:
+                    distance_metric = "l2"
+                    print(f"   [DEBUG] Auto-detected L2 metric (distance {distance} > 2)")
+                else:
+                    distance_metric = "cosine"
+                    print(f"   [DEBUG] Auto-detected cosine metric (distance {distance} <= 2)")
+            
+            # Convert distance to similarity based on metric
+            if distance_metric == "cosine":
+                # Cosine distance: range [0, 2]
+                # Similarity = 1 - (distance / 2) gives range [0, 1]
+                similarity = 1.0 - (distance / 2.0)
+                print(f"   [DEBUG] Cosine similarity for result {i}: {similarity} (distance: {distance})")
+            else:  # L2 or euclidean
+                # L2/Euclidean distance: no fixed range, typically [0, inf)
+                # Normalize to [0, 1] using: similarity = 1 / (1 + distance)
+                # This gives: distance 0 → similarity 1.0, distance inf → similarity 0.0
+                similarity = 1.0 / (1.0 + distance)
+                print(f"   [DEBUG] L2 distance for result {i}: {distance}, normalized similarity: {similarity}")
+                print(f"   [DEBUG] NOTE: Collection uses L2. For better semantic search, recreate with cosine distance.")
             
             # Apply minimum similarity threshold if specified
             # Now that we normalize L2 to [0, 1], the same threshold logic works for both
