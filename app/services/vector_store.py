@@ -205,22 +205,42 @@ class VectorStore:
         
         # Format results
         similar_events = []
-        if results['ids'] and len(results['ids'][0]) > 0:
-            for i, event_id in enumerate(results['ids'][0]):
-                # ChromaDB returns distances, convert to similarity scores
-                # Distance 0 = similarity 1.0, higher distance = lower similarity
-                distance = results['distances'][0][i]
-                similarity = 1.0 - distance  # Convert distance to similarity
-                
-                # Apply minimum similarity threshold if specified
-                if min_similarity is not None and similarity < min_similarity:
-                    continue
-                
-                similar_events.append({
-                    "event_id": UUID(event_id),
-                    "score": similarity,
-                    "metadata": results['metadatas'][0][i] if results['metadatas'] else {}
-                })
+        
+        # Debug: Check what ChromaDB returned
+        if not results.get('ids'):
+            print(f"⚠️  ChromaDB query returned no 'ids' key. Results keys: {results.keys()}")
+            return similar_events
+        
+        ids_list = results['ids']
+        if not ids_list or len(ids_list) == 0:
+            print(f"⚠️  ChromaDB query returned empty ids list")
+            return similar_events
+        
+        if len(ids_list[0]) == 0:
+            print(f"⚠️  ChromaDB query returned ids list with 0 items")
+            return similar_events
+        
+        # Process results
+        for i, event_id in enumerate(ids_list[0]):
+            # ChromaDB returns distances, convert to similarity scores
+            # Distance 0 = similarity 1.0, higher distance = lower similarity
+            distance = results['distances'][0][i] if results.get('distances') and results['distances'][0] else None
+            
+            if distance is None:
+                print(f"⚠️  No distance found for result {i}")
+                continue
+            
+            similarity = 1.0 - distance  # Convert distance to similarity
+            
+            # Apply minimum similarity threshold if specified
+            if min_similarity is not None and similarity < min_similarity:
+                continue
+            
+            similar_events.append({
+                "event_id": UUID(event_id),
+                "score": similarity,
+                "metadata": results['metadatas'][0][i] if results.get('metadatas') and results['metadatas'][0] else {}
+            })
         
         return similar_events
     
