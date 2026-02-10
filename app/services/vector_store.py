@@ -316,21 +316,10 @@ class VectorStore:
             print(f"   [DEBUG] Similarity for result {i}: {similarity} (distance: {distance})")
             
             # Apply minimum similarity threshold if specified
-            # Note: For L2 distance with negative scores, min_similarity logic needs adjustment
-            if min_similarity is not None:
-                if distance_metric == "l2" or distance_metric == "euclidean":
-                    # For L2, similarity is negative, so we check if distance is too large
-                    # Convert min_similarity threshold to max_distance
-                    # If min_similarity = 0.0, accept all (no filtering)
-                    if min_similarity > 0.0:
-                        # Rough conversion: if we want similarity > 0.5, that means distance < some threshold
-                        # For now, skip filtering for L2 or use a different approach
-                        print(f"   [DEBUG] L2 metric detected, skipping min_similarity filter (not applicable)")
-                else:
-                    # For cosine, use normal threshold
-                    if similarity < min_similarity:
-                        print(f"   [DEBUG] Similarity {similarity} below threshold {min_similarity}, skipping")
-                        continue
+            # Now that we normalize L2 to [0, 1], the same threshold logic works for both
+            if min_similarity is not None and similarity < min_similarity:
+                print(f"   [DEBUG] Similarity {similarity} below threshold {min_similarity}, skipping")
+                continue
             
             # Get metadata - same structure as ids and distances
             metadatas_list = results.get('metadatas', [])
