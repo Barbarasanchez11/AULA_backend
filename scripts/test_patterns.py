@@ -266,8 +266,10 @@ def interpret_patterns(patterns: Dict[str, Any], events: List[Event]) -> str:
     support_effectiveness = patterns.get("support_effectiveness", {})
     most_effective = support_effectiveness.get("most_effective_supports", [])
     if most_effective:
-        top_support = most_effective[0]
-        rate = support_effectiveness.get("support_success_rates", {}).get(top_support, 0)
+        # most_effective is a list of dicts: [{"support": "...", "success_rate": 0.xx}, ...]
+        top_support_item = most_effective[0]
+        top_support = top_support_item.get("support", "Unknown") if isinstance(top_support_item, dict) else top_support_item
+        rate = top_support_item.get("success_rate", 0) if isinstance(top_support_item, dict) else support_effectiveness.get("support_success_rates", {}).get(top_support, 0)
         interpretations.append(f"🛠️  El apoyo más efectivo es '{top_support}' ({rate:.1%} de éxito), lo que sugiere que funciona bien en este contexto.")
     
     # Overall assessment
