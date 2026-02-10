@@ -197,10 +197,14 @@ class VectorStore:
             where_clause = {k: v for k, v in filters.items() if k != "model_type"}
         
         # Search for similar events
+        # Note: ChromaDB uses cosine distance by default
+        # Distance 0 = identical, Distance 2 = opposite
+        # Similarity = 1 - (distance / 2) for cosine distance
         results = collection.query(
             query_embeddings=[query_embedding_list],
             n_results=top_k,
-            where=where_clause
+            where=where_clause,
+            include=['metadatas', 'distances']  # Explicitly include distances
         )
         
         # Format results
@@ -222,15 +226,19 @@ class VectorStore:
         
         # Process results
         for i, event_id in enumerate(ids_list[0]):
-            # ChromaDB returns distances, convert to similarity scores
-            # Distance 0 = similarity 1.0, higher distance = lower similarity
+            # ChromaDB returns cosine distances
+            # Cosine distance: 0 = identical, 2 = opposite
+            # Similarity = 1 - (distance / 2) for cosine distance
             distance = results['distances'][0][i] if results.get('distances') and results['distances'][0] else None
             
             if distance is None:
                 print(f"⚠️  No distance found for result {i}")
                 continue
             
-            similarity = 1.0 - distance  # Convert distance to similarity
+            # Convert cosine distance to similarity
+            # ChromaDB uses cosine distance: range [0, 2]
+            # Similarity = 1 - (distance / 2) gives range [0, 1]
+            similarity = 1.0 - (distance / 2.0)
             
             # Apply minimum similarity threshold if specified
             if min_similarity is not None and similarity < min_similarity:
