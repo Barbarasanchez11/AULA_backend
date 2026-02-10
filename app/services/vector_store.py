@@ -274,29 +274,39 @@ class VectorStore:
         ids_to_process = first_query_results
         
         # Process results
+        print(f"   [DEBUG] Processing {len(ids_to_process)} results...")
         for i, event_id in enumerate(ids_to_process):
+            print(f"   [DEBUG] Processing result {i+1}/{len(ids_to_process)}: {event_id}")
+            
             # ChromaDB returns cosine distances
             # Cosine distance: 0 = identical, 2 = opposite
             # Similarity = 1 - (distance / 2) for cosine distance
             # Distances structure: [[dist1, dist2, ...]] - same as ids
             distances_list = results.get('distances', [])
+            print(f"   [DEBUG] Distances list type: {type(distances_list)}, length: {len(distances_list) if distances_list else 0}")
+            
             if distances_list and len(distances_list) > 0:
                 first_query_distances = distances_list[0] if isinstance(distances_list[0], list) else distances_list
+                print(f"   [DEBUG] First query distances type: {type(first_query_distances)}, length: {len(first_query_distances) if isinstance(first_query_distances, list) else 'Not a list'}")
                 distance = first_query_distances[i] if isinstance(first_query_distances, list) and i < len(first_query_distances) else None
+                print(f"   [DEBUG] Distance for result {i}: {distance}")
             else:
                 distance = None
+                print(f"   [DEBUG] No distances list found")
             
             if distance is None:
-                print(f"⚠️  No distance found for result {i}")
+                print(f"⚠️  No distance found for result {i}, skipping")
                 continue
             
             # Convert cosine distance to similarity
             # ChromaDB uses cosine distance: range [0, 2]
             # Similarity = 1 - (distance / 2) gives range [0, 1]
             similarity = 1.0 - (distance / 2.0)
+            print(f"   [DEBUG] Similarity for result {i}: {similarity} (distance: {distance})")
             
             # Apply minimum similarity threshold if specified
             if min_similarity is not None and similarity < min_similarity:
+                print(f"   [DEBUG] Similarity {similarity} below threshold {min_similarity}, skipping")
                 continue
             
                 # Get metadata - same structure as ids and distances
