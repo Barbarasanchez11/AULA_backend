@@ -320,15 +320,37 @@ class PIIValidator:
         # Pattern: Capitalized word at start of sentence or after punctuation
         # But exclude common words that are capitalized (like "Transición", "Anticipación")
         common_capitalized_words = [
+            # Educational terms
             "transición", "transiciones", "cambio", "aprendizaje", "regulación",
             "anticipación", "mediación", "adaptación", "pausa", "apoyo",
             "estudiantes", "estudiante", "alumnos", "alumna", "alumno",
-            "todos", "todos", "algunos", "algunas", "muchos", "muchas",
+            "actividad", "actividades", "momento", "momentos",
+            # Common verbs (often capitalized at sentence start)
+            "requiere", "requieren", "se", "fue", "fueron", "es", "son",
+            "tiene", "tienen", "hace", "hacen", "puede", "pueden",
+            "debe", "deben", "debería", "deberían", "necesita", "necesitan",
+            "mostró", "mostraron", "observó", "observaron", "logró", "lograron",
+            "redujo", "redujeron", "facilitó", "facilitaron", "generó", "generaron",
+            "funcionó", "funcionaron", "incorporaron", "incorporó",
+            # Common nouns
+            "todos", "todas", "algunos", "algunas", "muchos", "muchas",
             "observaciones", "observación", "resultado", "resultados",
+            "espacio", "espacios", "tiempo", "tiempos", "día", "días",
+            "combinación", "combinaciones", "efectividad", "implementación",
+            "mayoría", "excepciones", "dificultades", "dificultad",
+            # Educational supports and materials
+            "auriculares", "pictogramas", "cojines", "luces", "cronómetro",
+            "tarjetas", "panel", "agenda", "historia", "rincón",
             # Common articles and determiners (should not be flagged as names)
             "los", "las", "el", "la", "un", "una", "unos", "unas",
             "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas",
-            "aquel", "aquella", "aquellos", "aquellas"
+            "aquel", "aquella", "aquellos", "aquellas",
+            # Common adjectives
+            "adecuada", "adecuado", "adecuadas", "adecuados",
+            "efectivo", "efectiva", "efectivos", "efectivas",
+            "significativa", "significativo", "significativas", "significativos",
+            "inicial", "iniciales", "adicional", "adicionales", "complementario", "complementarios",
+            "mejor", "peor", "bien", "mal"
         ]
         
         # If text has educational context, also exclude educational words from Strategy 2
@@ -366,19 +388,37 @@ class PIIValidator:
             end_pos = match.end(1)
             
             # Check if followed by common verb patterns (likely a name)
+            # But be more strict: only flag if it's clearly a name pattern
             context_after = text[end_pos:end_pos+20].lower()
-            name_indicators = [" tuvo", " tuvo", " mostró", " necesitó", " trabajó", " participó"]
+            name_indicators = [" tuvo", " mostró", " necesitó", " trabajó", " participó", " asistió"]
+            
+            # Check if it's part of a common educational phrase
+            context_full = text[max(0, start_pos-10):end_pos+20].lower()
+            educational_patterns = [
+                "actividad de", "momento de", "transición de", "cambio de",
+                "se ", "la ", "el ", "los ", "las ", "un ", "una ",
+                "funcionó", "funcionaron", "se redujo", "se logró",
+                "de ", "en ", "con ", "para ", "por "
+            ]
+            
+            # Skip if it's clearly part of an educational phrase
+            if any(pattern in context_full for pattern in educational_patterns):
+                continue
             
             # Also check for "Nombre y Nombre" pattern (two names)
             if start_pos > 0:
                 context_before = text[max(0, start_pos-10):start_pos].lower()
                 if " y " in context_before or " con " in context_before:
+                    # Only flag if both words are likely names (not common words)
                     matches.append((potential_name, start_pos))
                     continue
             
-            # If followed by name indicators or at sentence start, likely a name
-            if any(indicator in context_after for indicator in name_indicators) or start_pos == 0:
-                matches.append((potential_name, start_pos))
+            # Only flag if followed by name indicators AND not in educational context
+            # Be very conservative: only flag if it's clearly a person's name
+            if any(indicator in context_after for indicator in name_indicators):
+                # Double check: is this word actually in our names list?
+                if potential_name_lower in (self.COMMON_SPANISH_NAMES + self.COMMON_SPANISH_SURNAMES):
+                    matches.append((potential_name, start_pos))
         
         # Strategy 3: Detect "Nombre Apellido" pattern (two capitalized words together)
         name_surname_pattern = r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)\b'
