@@ -150,7 +150,7 @@ def generate_result(event_type: str, supports: List[str]) -> str:
     Includes intentional patterns for AI to detect.
     """
     # Calculate base effectiveness based on supports
-    base_effectiveness = sum(SUPPORT_EFFECTIVENESS.get(apoyo, 0.5) for apoyo in apoyos) / len(apoyos)
+    base_effectiveness = sum(SUPPORT_EFFECTIVENESS.get(support, 0.5) for support in supports) / len(supports)
     
     # Adjust based on event type
     difficulty_probability = PROBLEMATIC_EVENTS.get(event_type, 0.15)
