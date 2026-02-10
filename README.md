@@ -1,8 +1,15 @@
 # AULA+ — Sistema de Apoyo Pedagógico para Aulas TEA
 
-## Descripción
+## ¿Qué es AULA+?
 
-AULA+ es un sistema backend de apoyo para docentes en aulas de alumnado con Trastorno del Espectro Autista (TEA). Su objetivo es registrar eventos pedagógicos anonimizados, analizar patrones históricos del aula y ofrecer recomendaciones pedagógicas bajo demanda, respetando estrictamente la privacidad y protección de datos de los menores.
+**AULA+ es un sistema de inteligencia artificial que apoya a docentes en aulas TEA analizando eventos pedagógicos y generando recomendaciones basadas en patrones históricos del aula.**
+
+AULA+ es:
+- ✅ **Un complemento de IA** que se integra con sistemas existentes (Raíces, Séneca)
+- ✅ **Un analizador de patrones** que detecta qué estrategias funcionan mejor en cada aula
+- ✅ **Un generador de recomendaciones** que sugiere acciones basadas en evidencia histórica
+- ✅ **Un sistema de apoyo** que respeta la autonomía y decisiones del docente
+- ✅ **Una herramienta pedagógica** que aprende de los datos de cada aula específica
 
 **Principios fundamentales:**
 - NO recopila datos personales de menores
@@ -10,6 +17,18 @@ AULA+ es un sistema backend de apoyo para docentes en aulas de alumnado con Tras
 - NO diagnostica ni evalúa clínicamente
 - Cada aula es una unidad independiente (aislamiento de datos)
 - El control humano es siempre prioritario
+
+## ¿Qué problema resuelve?
+
+Los docentes de aulas TEA enfrentan el desafío de identificar qué estrategias pedagógicas funcionan mejor en su aula específica. Analizar manualmente cientos de eventos pedagógicos es complejo y consume mucho tiempo. Cada aula es única y requiere recomendaciones personalizadas basadas en sus propios datos históricos.
+
+**AULA+ resuelve este problema:**
+- **Automatiza el análisis** de eventos pedagógicos para detectar patrones ocultos
+- **Identifica qué apoyos funcionan mejor** en situaciones similares
+- **Detecta momentos críticos** del día o días de la semana más difíciles
+- **Genera recomendaciones accionables** basadas en evidencia histórica del aula
+- **Explica el por qué** de cada recomendación (patrón detectado)
+- **Se integra sin complicar** el flujo de trabajo del docente
 
 ## Funcionalidades Principales
 
@@ -85,23 +104,31 @@ El sistema registra eventos anonimizados del aula en cuatro categorías:
 - Análisis del aula
 - Recomendaciones internas del sistema
 
-## Qué NO Hace el Sistema
+## ¿Qué NO es AULA+?
 
-**Límites explícitos y claros:**
+**Límites explícitos y claros - Scope congelado:**
 
-- ❌ NO recopila datos personales de menores (nombres, DNI, fotos, etc.)
-- ❌ NO usa biometría (cámaras, audio, sensores, reconocimiento facial)
-- ❌ NO diagnostica ni evalúa clínicamente
-- ❌ NO genera informes clínicos ni psicológicos
-- ❌ NO identifica ni etiqueta a estudiantes individuales
-- ❌ NO toma decisiones automáticas que afecten a personas
-- ❌ NO comparte datos entre aulas (cada aula es independiente)
-- ❌ NO almacena información que permita identificar a menores
-- ❌ NO predice comportamientos individuales
-- ❌ NO reemplaza la evaluación profesional ni la intervención especializada
-- ❌ NO genera alertas automáticas a familias o administración
-- ❌ NO usa datos para entrenar modelos externos o comerciales
-- ❌ NO sustituye decisiones pedagógicas del docente
+AULA+ **NO es:**
+- ❌ **Un sistema de diagnóstico clínico** - No diagnostica ni evalúa clínicamente
+- ❌ **Un sistema de identificación** - No identifica ni etiqueta a estudiantes individuales
+- ❌ **Un sistema de biometría** - No usa cámaras, audio, sensores, reconocimiento facial
+- ❌ **Un sistema de datos personales** - No recopila nombres, DNI, fotos, ni información identificable
+- ❌ **Un sistema de predicción individual** - No predice comportamientos de estudiantes específicos
+- ❌ **Un sistema de alertas automáticas** - No genera alertas automáticas a familias o administración
+- ❌ **Un sistema de decisión automática** - No toma decisiones que afecten a personas
+- ❌ **Un sistema de compartición de datos** - No comparte datos entre aulas (cada aula es independiente)
+- ❌ **Un sistema de entrenamiento externo** - No usa datos para entrenar modelos externos o comerciales
+- ❌ **Un reemplazo del docente** - No sustituye decisiones pedagógicas ni evaluación profesional
+- ❌ **Un sistema de informes clínicos** - No genera informes clínicos ni psicológicos
+- ❌ **Un sistema de evaluación especializada** - No reemplaza la intervención especializada
+
+**AULA+ es únicamente:**
+- ✅ Un sistema de análisis de patrones históricos del aula
+- ✅ Un generador de recomendaciones basadas en evidencia
+- ✅ Una herramienta de apoyo que respeta la autonomía del docente
+- ✅ Un complemento que se integra con sistemas existentes
+
+**🔒 Scope congelado:** El alcance del sistema está definido y congelado. No se añadirán nuevas funcionalidades fuera de este alcance hasta completar la validación con datos reales.
 
 ## Arquitectura Técnica
 
@@ -111,11 +138,12 @@ El sistema registra eventos anonimizados del aula en cuatro categorías:
 - **Base de datos relacional**: PostgreSQL 16
 - **ORM**: SQLAlchemy 2.0 (async)
 - **Validación de datos**: Pydantic v2
-- **Orquestación IA**: LangGraph (futuro)
-- **Embeddings semánticos**: Para análisis de similitud entre eventos (futuro)
-- **Vector DB**: FAISS o Chroma (para búsqueda semántica de patrones) (futuro)
+- **Embeddings semánticos**: sentence-transformers (mpnet + distiluse)
+- **Vector DB**: ChromaDB (persistente, por aula)
+- **Análisis de patrones**: scikit-learn (DBSCAN clustering)
+- **Orquestación IA**: LangGraph (pendiente - después de validar con datos reales)
 - **Despliegue**: Contenedores Docker, escalable por aula
-- **Visor de BD**: Adminer (puerto 8080)
+- **Visor de BD**: Adminer (puerto 8081)
 
 ### Estructura del Proyecto
 
@@ -155,28 +183,39 @@ AULA_backend/
    └─> Se almacena en PostgreSQL
    └─> Se devuelve EventResponse (JSON)
 
-2. PROCESAMIENTO PERIÓDICO (ej: diario/nocturno) [FUTURO]
-   └─> Sistema analiza eventos históricos del aula
-   └─> Genera embeddings semánticos de eventos similares
-   └─> Identifica patrones recurrentes (clustering)
-   └─> Detecta correlaciones temporales (día/hora)
-   └─> Analiza efectividad de apoyos utilizados
+2. PROCESAMIENTO AUTOMÁTICO (en tiempo real)
+   └─> Al crear/actualizar evento, se genera embedding automáticamente (background task)
+   └─> Embedding se almacena en ChromaDB (vector database)
+   └─> Sistema permite búsqueda semántica de eventos similares
 
-3. GENERACIÓN DE RECOMENDACIONES [FUTURO]
-   └─> Basado en patrones detectados
-   └─> Considera contexto temporal y situacional
-   └─> Prioriza recomendaciones con mayor evidencia histórica
+3. ANÁLISIS DE PATRONES (bajo demanda)
+   └─> Docente solicita análisis vía GET /events/patterns
+   └─> Sistema analiza eventos históricos del aula:
+       └─> Clustering semántico (DBSCAN) para agrupar eventos similares
+       └─> Patrones temporales (día de semana, momento del día)
+       └─> Efectividad de apoyos utilizados
+   └─> Devuelve resultados del análisis
+
+4. GENERACIÓN DE RECOMENDACIONES (bajo demanda)
+   └─> Docente solicita recomendaciones vía POST /recommendations/generate
+   └─> Sistema genera recomendaciones basadas en patrones detectados:
+       └─> Considera contexto temporal y situacional
+       └─> Prioriza recomendaciones con mayor evidencia histórica
+       └─> Incluye nivel de confianza (ALTA/MEDIA/BAJA)
+       └─> Explica el patrón detectado que sustenta la recomendación
    └─> Almacena recomendaciones generadas en PostgreSQL
 
-4. CONSULTA POR DOCENTE
-   └─> Docente solicita recomendaciones vía GET /recommendations/?classroom_id={id}
+5. CONSULTA DE RECOMENDACIONES
+   └─> Docente consulta recomendaciones vía GET /recommendations/?classroom_id={id}
    └─> Sistema consulta PostgreSQL
-   └─> Devuelve lista de recomendaciones ordenadas por relevancia
-   └─> Docente puede consultar detalles vía GET /recommendations/{id}
+   └─> Devuelve lista de recomendaciones con detalles completos
+   └─> Docente puede consultar detalles específicos vía GET /recommendations/{id}
 
-5. RETROALIMENTACIÓN (opcional, futuro)
-   └─> Docente puede marcar recomendaciones como útiles/no útiles
-   └─> Sistema ajusta priorización (sin modificar recomendaciones existentes)
+6. BÚSQUEDA SEMÁNTICA
+   └─> Docente busca eventos similares vía GET /events/similar
+   └─> Sistema usa embeddings para encontrar eventos semánticamente similares
+   └─> Devuelve eventos con score de similitud
+   └─> Permite aprender de situaciones pasadas similares
 ```
 
 ### Diagrama de Arquitectura Actual
@@ -213,10 +252,10 @@ AULA_backend/
          ├──────────────────┬──────────────────┐
          │                  │                  │
 ┌────────▼────────┐  ┌──────▼──────┐  ┌───────▼──────┐
-│  PostgreSQL     │  │  Vector DB  │  │  LangGraph   │
-│  (Eventos,      │  │  (FAISS/    │  │  (Orquestación│
-│   Aulas,        │  │   Chroma)   │  │   IA)        │
-│   Recomend.)    │  │   [FUTURO]  │  │   [FUTURO]   │
+│  PostgreSQL     │  │  ChromaDB    │  │  LangGraph   │
+│  (Eventos,      │  │  (Embeddings│  │  (Orquestación│
+│   Aulas,        │  │   semánticos)│  │   IA)        │
+│   Recomend.)    │  │   [ACTIVO]  │  │   [PENDIENTE]│
 └─────────────────┘  └─────────────┘  └──────────────┘
 ```
 
@@ -315,9 +354,11 @@ GET /classrooms/{uuid}
 |--------|------|-------------|-------------|
 | `GET` | `/events/?classroom_id={id}` | Lista eventos de un aula específica | 200 / 404 |
 | `GET` | `/events/{id}` | Obtiene un evento específico por ID | 200 / 404 |
-| `POST` | `/events/` | Crea un nuevo evento pedagógico | 201 / 422 / 404 |
-| `PUT` | `/events/{id}` | Actualiza un evento (campos opcionales) | 200 / 404 |
-| `DELETE` | `/events/{id}` | Elimina un evento | 204 / 404 |
+| `GET` | `/events/similar?event_id={id}&classroom_id={id}` | Busca eventos similares usando embeddings | 200 / 404 |
+| `GET` | `/events/patterns?classroom_id={id}` | Analiza patrones en eventos del aula | 200 / 404 |
+| `POST` | `/events/` | Crea un nuevo evento pedagógico (genera embedding automáticamente) | 201 / 422 / 404 |
+| `PUT` | `/events/{id}` | Actualiza un evento (regenera embedding si es necesario) | 200 / 404 |
+| `DELETE` | `/events/{id}` | Elimina un evento (y su embedding) | 204 / 404 |
 
 **Ejemplo de uso:**
 ```bash
@@ -352,9 +393,10 @@ PUT /events/{uuid}
 |--------|------|-------------|-------------|
 | `GET` | `/recommendations/?classroom_id={id}` | Lista recomendaciones de un aula | 200 / 404 |
 | `GET` | `/recommendations/{id}` | Obtiene una recomendación específica por ID | 200 / 404 |
-| `POST` | `/recommendations/` | Crea una recomendación (útil para testing) | 201 / 422 / 404 |
+| `POST` | `/recommendations/` | Crea una recomendación manualmente (útil para testing) | 201 / 422 / 404 |
+| `POST` | `/recommendations/generate?classroom_id={id}` | Genera recomendaciones automáticamente desde patrones | 201 / 404 |
 
-**Nota:** En producción, las recomendaciones se generan automáticamente. El POST es útil para desarrollo y testing.
+**Nota:** Las recomendaciones se generan automáticamente analizando patrones históricos del aula. El POST manual es útil para desarrollo y testing.
 
 **Ejemplo de uso:**
 ```bash
@@ -493,7 +535,7 @@ FastAPI genera automáticamente:
 - **API Base**: `http://localhost:8000`
 - **Documentación Swagger**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
-- **Adminer (BD)**: `http://localhost:8080`
+- **Adminer (BD)**: `http://localhost:8081`
 
 ### Probar los Endpoints
 
@@ -595,8 +637,8 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 
 **Endpoints implementados:**
 - 5 endpoints de Classrooms (CRUD completo)
-- 6 endpoints de Events (CRUD completo + similar + patterns)
-- 4 endpoints de Recommendations (GET list, GET by ID, POST, POST generate)
+- 7 endpoints de Events (CRUD completo + similar + patterns)
+- 4 endpoints de Recommendations (GET list, GET by ID, POST manual, POST generate automático)
 
 ### ✅ Fase 2: Base IA (COMPLETADA)
 - ✅ Sistema de embeddings híbrido (distiluse + mpnet)
