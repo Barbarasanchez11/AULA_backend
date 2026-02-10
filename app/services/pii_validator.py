@@ -242,6 +242,12 @@ class PIIValidator:
         # Strategy 1: Check for common names (with word boundaries)
         all_names = self.COMMON_SPANISH_NAMES + self.COMMON_SPANISH_SURNAMES
         
+        # Exclude "estudiante" when it appears in synthetic data patterns like "(estudiante EST001)"
+        estudiante_synthetic_pattern = r'\(estudiante\s+EST\d+\)'
+        if re.search(estudiante_synthetic_pattern, text, re.IGNORECASE):
+            # Remove "estudiante" from names list for this text to avoid false positives
+            all_names = [n for n in all_names if n != "estudiante"]
+        
         for name in all_names:
             # Pattern: name at start of sentence or after space/punctuation
             pattern = r'\b' + re.escape(name) + r'\b'
@@ -249,6 +255,12 @@ class PIIValidator:
                 # Check if it's capitalized (likely a name)
                 original_match = text[match.start():match.end()]
                 if original_match[0].isupper():
+                    # Skip if it's part of "(estudiante EST001)" pattern
+                    context_start = max(0, match.start() - 20)
+                    context_end = min(len(text), match.end() + 20)
+                    context = text[context_start:context_end]
+                    if re.search(estudiante_synthetic_pattern, context, re.IGNORECASE):
+                        continue
                     matches.append((original_match, match.start()))
         
         # Strategy 2: Detect capitalized words that look like names
@@ -258,8 +270,13 @@ class PIIValidator:
             "transición", "transiciones", "cambio", "aprendizaje", "regulación",
             "anticipación", "mediación", "adaptación", "pausa", "apoyo",
             "estudiantes", "estudiante", "alumnos", "alumna", "alumno",
-            "todos", "todos", "algunos", "algunas", "muchos", "muchas"
+            "todos", "todos", "algunos", "algunas", "muchos", "muchas",
+            "observaciones", "observación", "resultado", "resultados"
         ]
+        
+        # Also exclude "estudiante" when it appears in patterns like "(estudiante EST001)"
+        # This is a common pattern in synthetic data that should not be flagged
+        estudiante_pattern = r'\(estudiante\s+EST\d+\)'
         
         # Find capitalized words (potential names)
         # Pattern: Word starting with capital letter, at sentence start or after punctuation

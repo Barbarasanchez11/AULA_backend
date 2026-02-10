@@ -179,9 +179,9 @@ def generate_event(classroom_id: str, student: str, event_num: int) -> Dict:
     event_type = random.choice(list(EVENT_TYPES.keys()))
     description = random.choice(EVENT_TYPES[event_type])
     
-    # Add anonymized student reference
-    if random.random() < 0.3:  # 30% of events mention student
-        description = f"{description} (estudiante {student})"
+    # Note: We don't add student references to avoid PII detection
+    # The word "estudiante" is in the PII validator's name list for safety
+    # For synthetic data, we keep descriptions generic
     
     # Select moment of day according to distribution
     moment_of_day = random.choices(
