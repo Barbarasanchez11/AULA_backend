@@ -94,12 +94,17 @@ class VectorStore:
         try:
             # Try to get existing collection
             collection = self.client.get_collection(name=collection_name)
-        except Exception:
+            print(f"   [DEBUG] Retrieved existing collection: {collection_name}")
+        except Exception as e:
             # Collection doesn't exist, create it
+            print(f"   [DEBUG] Collection doesn't exist, creating: {collection_name} (error: {e})")
+            # When creating a collection without an embedding function,
+            # ChromaDB will use the embeddings we provide directly
             collection = self.client.create_collection(
                 name=collection_name,
                 metadata={"classroom_id": str(classroom_id), "model_type": model_type}
             )
+            print(f"   [DEBUG] Created new collection: {collection_name}")
         
         return collection
     
@@ -238,27 +243,48 @@ class VectorStore:
         ids_list = results['ids']
         print(f"   [DEBUG] IDs list type: {type(ids_list)}")
         print(f"   [DEBUG] IDs list: {ids_list}")
+        print(f"   [DEBUG] IDs list length: {len(ids_list) if ids_list else 0}")
         
-        if not ids_list or len(ids_list) == 0:
-            print(f"⚠️  ChromaDB query returned empty ids list")
+        if not ids_list:
+            print(f"⚠️  ChromaDB query returned no ids list")
             print(f"   [DEBUG] Full results: {results}")
             return similar_events
         
-        print(f"   [DEBUG] IDs[0] type: {type(ids_list[0])}")
-        print(f"   [DEBUG] IDs[0]: {ids_list[0]}")
-        print(f"   [DEBUG] IDs[0] length: {len(ids_list[0])}")
+        # ChromaDB returns results as a list of lists: [[id1, id2, ...]]
+        # Each inner list corresponds to one query embedding
+        # Since we're querying with one embedding, we want ids_list[0]
+        if not isinstance(ids_list, list) or len(ids_list) == 0:
+            print(f"⚠️  ChromaDB query returned invalid ids list structure")
+            print(f"   [DEBUG] Full results: {results}")
+            return similar_events
         
-        if len(ids_list[0]) == 0:
+        # Get the first (and only) query result list
+        first_query_results = ids_list[0] if isinstance(ids_list[0], list) else ids_list
+        print(f"   [DEBUG] First query results type: {type(first_query_results)}")
+        print(f"   [DEBUG] First query results: {first_query_results}")
+        print(f"   [DEBUG] First query results length: {len(first_query_results) if isinstance(first_query_results, list) else 'Not a list'}")
+        
+        if not isinstance(first_query_results, list) or len(first_query_results) == 0:
             print(f"⚠️  ChromaDB query returned ids list with 0 items")
-            print(f"   [DEBUG] Full results: {results}")
+            print(f"   [DEBUG] Full results structure: {results}")
+            print(f"   [DEBUG] Distances: {results.get('distances', 'Not found')}")
             return similar_events
+        
+        # Use first_query_results instead of ids_list[0]
+        ids_to_process = first_query_results
         
         # Process results
-        for i, event_id in enumerate(ids_list[0]):
+        for i, event_id in enumerate(ids_to_process):
             # ChromaDB returns cosine distances
             # Cosine distance: 0 = identical, 2 = opposite
             # Similarity = 1 - (distance / 2) for cosine distance
-            distance = results['distances'][0][i] if results.get('distances') and results['distances'][0] else None
+            # Distances structure: [[dist1, dist2, ...]] - same as ids
+            distances_list = results.get('distances', [])
+            if distances_list and len(distances_list) > 0:
+                first_query_distances = distances_list[0] if isinstance(distances_list[0], list) else distances_list
+                distance = first_query_distances[i] if isinstance(first_query_distances, list) and i < len(first_query_distances) else None
+            else:
+                distance = None
             
             if distance is None:
                 print(f"⚠️  No distance found for result {i}")
@@ -273,11 +299,19 @@ class VectorStore:
             if min_similarity is not None and similarity < min_similarity:
                 continue
             
-            similar_events.append({
-                "event_id": UUID(event_id),
-                "score": similarity,
-                "metadata": results['metadatas'][0][i] if results.get('metadatas') and results['metadatas'][0] else {}
-            })
+                # Get metadata - same structure as ids and distances
+                metadatas_list = results.get('metadatas', [])
+                if metadatas_list and len(metadatas_list) > 0:
+                    first_query_metadatas = metadatas_list[0] if isinstance(metadatas_list[0], list) else metadatas_list
+                    metadata = first_query_metadatas[i] if isinstance(first_query_metadatas, list) and i < len(first_query_metadatas) else {}
+                else:
+                    metadata = {}
+                
+                similar_events.append({
+                    "event_id": UUID(event_id),
+                    "score": similarity,
+                    "metadata": metadata
+                })
         
         return similar_events
     
