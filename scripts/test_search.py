@@ -98,7 +98,10 @@ async def search_semantic(query_text: str, classroom_id: UUID, top_k: int = 3, m
     async with AsyncSessionLocal() as session:
         events_with_scores = []
         for result in similar_results:
-            event_id = UUID(result["event_id"])
+            # event_id is already a UUID object from vector_store.py
+            event_id = result["event_id"]
+            if isinstance(event_id, str):
+                event_id = UUID(event_id)
             score = result["score"]
             
             # Get event from database
