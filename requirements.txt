@@ -15,3 +15,8 @@ scikit-learn
 numpy<2.0  # NumPy 2.x is not compatible with sentence-transformers yet
 chromadb
 colorama  # Vector database for storing and searching embeddings
+# Dependencies for LangGraph and LLM
+langgraph
+langchain
+langchain-groq
+langchain-core

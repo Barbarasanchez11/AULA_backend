@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     
     debug: bool = False
     app_name: str = "AULA+"
+    
+    # Groq API configuration
+    groq_api_key: Optional[str] = None
+    groq_model: str = "llama-3.1-8b-instant"  
+    groq_temperature: float = 0.7  
+    groq_max_tokens: int = 1000  
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -22,7 +28,7 @@ class Settings(BaseSettings):
             # Si estamos en Docker, usar el nombre del servicio, sino localhost
             import os
             host = self.postgres_host or (os.getenv("POSTGRES_HOST", "localhost"))
-            # Si no hay POSTGRES_HOST en env, intentar detectar si estamos en Docker
+            
             if host == "localhost" and os.path.exists("/.dockerenv"):
                 host = "postgres"  # Nombre del servicio en docker-compose
             port = self.postgres_port or "5432"
