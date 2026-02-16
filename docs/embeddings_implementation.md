@@ -611,3 +611,4 @@ El sistema de embeddings implementado proporciona una base sólida para la búsq
 **Última actualización**: 9 de febrero de 2026  
 **Autor**: Equipo de desarrollo AULA+
 
+

@@ -332,3 +332,4 @@ curl -X 'GET' \
 **Última actualización**: 9 de febrero de 2026  
 **Autor**: Equipo de desarrollo AULA+
 
+

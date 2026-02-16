@@ -323,3 +323,4 @@ echo "✅ Flujo completo probado"
 - Los embeddings se regeneran solo si cambias campos relevantes (description, event_type, supports, result, observations, context)
 - Verifica en la consola del servidor si hay errores
 
+
