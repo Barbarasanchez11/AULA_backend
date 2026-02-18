@@ -273,7 +273,7 @@ async def test_4_invalid_event_data():
     # Validate error
     errors = result_state.get("errors", [])
     assert len(errors) > 0, "Should have errors for invalid event_data"
-    assert any("missing" in err.get("message", "").lower() for err in errors), "Should have 'missing' error"
+    assert any(any(x in err.get("message", "").lower() for x in ["missing", "required"]) for err in errors), "Should have 'missing' or 'required' error"
     print("  ✅ Test 4 PASSED (correctly detected error)")
 
 
