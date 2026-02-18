@@ -324,3 +324,4 @@ echo "✅ Flujo completo probado"
 - Verifica en la consola del servidor si hay errores
 
 
+

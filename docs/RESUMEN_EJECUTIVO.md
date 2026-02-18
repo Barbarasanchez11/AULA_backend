@@ -33,3 +33,4 @@ El siguiente paso es realizar un piloto con un centro educativo real, utilizando
 **AULA+ - Inteligencia artificial que apoya a los docentes, sin complicar su trabajo.**
 
 
+

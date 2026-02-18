@@ -210,3 +210,4 @@ Después de una importación exitosa:
 **Nota**: Si encuentras algún error, revisa los mensajes del script. Cada error incluye información sobre qué falló y en qué fila del CSV.
 
 
+

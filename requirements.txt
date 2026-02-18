@@ -10,6 +10,9 @@ python-dotenv
 httpx
 pytest
 # Dependencies for embeddings and ML
+# Note: torch is installed automatically as dependency of sentence-transformers
+# Current compatible version: torch 2.2.2 (PyTorch 2.4.0+ not available in standard pip index)
+# If you need a newer PyTorch version, install from: https://pytorch.org/get-started/locally/
 sentence-transformers
 scikit-learn
 numpy<2.0  
@@ -20,3 +23,4 @@ langgraph
 langchain
 langchain-groq
 langchain-core
+nest-asyncio  # Allow nested event loops (needed for async DB calls in sync LangGraph nodes)
