@@ -1,38 +1,33 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 from uuid import UUID
 import logging
 
-# Import existing services to integrate them
-from app.services.vector_store import VectorStore
+from app.services.langgraph.services.context_searcher import ContextSearcher
 from app.services.pattern_analysis import PatternAnalysisService
 
 logger = logging.getLogger(__name__)
 
 class ContextService:
     """
-    Aggregator service in charge of gathering context for the Graph.
-    Combines vector search for similar events and pattern analysis.
+    Main orchestrator for gathering historical and structural context.
+    Delegates specialized tasks to Searcher, Analyzer, and Builder.
     """
     
     def __init__(self):
-        # Initialize necessary tools
-        self.vector_store = VectorStore()
+        self.searcher = ContextSearcher()
         self.pattern_service = PatternAnalysisService()
 
     async def get_event_context(self, event_data: Dict[str, Any], classroom_id: UUID) -> Dict[str, Any]:
         """
-        Main method to obtain the full context for an event.
-        
-        Args:
-            event_data: Current event data.
-            classroom_id: Classroom ID to filter the search.
-            
-        Returns:
-            Dict containing similar events, detected patterns, and formatted context for the LLM.
+        Coordinates the gathering of context for a given event.
         """
-        # For now, we return an empty structure to be populated in Step 2
+        # Step 2: Search for similar events (delegated to ContextSearcher)
+        similar_events = self.searcher.search_similar_events(event_data, classroom_id)
+        
+        # Step 3: Pattern analysis (To be fully integrated)
+        # For now, we return basic results
         return {
-            "similar_events": [],
+            "similar_events": similar_events,
             "patterns": {},
-            "context_for_llm": ""
+            "context_for_llm": f"Historical search found {len(similar_events)} relevant events."
         }
