@@ -141,7 +141,8 @@ AULA+ **NO es:**
 - **Embeddings semánticos**: sentence-transformers (mpnet + distiluse)
 - **Vector DB**: ChromaDB (persistente, por aula)
 - **Análisis de patrones**: scikit-learn (DBSCAN clustering)
-- **Orquestación IA**: LangGraph (pendiente - después de validar con datos reales)
+- **Orquestación IA / Agentes**: LangGraph (Activo - Implementado con 4 nodos)
+- **Proveedor LLM**: Groq (Llama 3.1-8b-instant)
 - **Despliegue**: Contenedores Docker, escalable por aula
 - **Visor de BD**: Adminer (puerto 8081)
 
@@ -151,25 +152,20 @@ AULA+ **NO es:**
 AULA_backend/
 ├── app/
 │   ├── main.py                 # Aplicación FastAPI principal
-│   ├── config.py               # Configuración (settings)
-│   ├── models/
-│   │   ├── database.py         # Configuración BD y sesiones
-│   │   ├── models.py           # Modelos SQLAlchemy (Classroom, Event, Recommendation)
-│   │   └── init_db.py          # Script de inicialización de BD
-│   ├── routers/
-│   │   ├── classrooms.py       # Endpoints de gestión de aulas
-│   │   ├── events.py           # Endpoints de gestión de eventos
-│   │   └── recommendations.py  # Endpoints de gestión de recomendaciones
-│   ├── schemas/
-│   │   ├── enums.py            # Enumeraciones (EventType, Result, etc.)
-│   │   ├── classroom.py        # Schemas Pydantic de aulas
-│   │   ├── event.py            # Schemas Pydantic de eventos
-│   │   └── recommendation.py   # Schemas Pydantic de recomendaciones
-│   └── services/              # Lógica de negocio (futuro)
+│   ├── services/
+│   │   ├── langgraph/          # Orquestación de Agentes
+│   │   │   ├── nodes/          # Nodos del grafo (Receive, Search, LLM, Validate)
+│   │   │   ├── services/       # Servicios de soporte (ContextSearcher, ContextService)
+│   │   │   ├── graph.py        # Definición del flujo del grafo
+│   │   │   ├── state.py        # Definición del estado compartido
+│   │   │   └── service.py      # Orquestador principal del grafo
+│   │   ├── embeddingService.py # Generación de vectores
+│   │   ├── vector_store.py     # Gestión de ChromaDB
+│   │   └── pattern_analysis.py # Cerebro analítico (Clustering y Tendencias)
 ├── docs/
-│   └── database_structure.md   # Documentación de estructura de BD
-├── docker-compose.yml          # Configuración Docker (PostgreSQL + Adminer)
-└── requirements.txt           # Dependencias Python
+│   └── langgraph_agents_architecture.md # Documentación detallada de agentes
+├── scripts/
+│   └── test_langgraph_full.py  # Test de integración del flujo completo
 ```
 
 ### Flujo de Funcionamiento
@@ -252,10 +248,10 @@ AULA_backend/
          ├──────────────────┬──────────────────┐
          │                  │                  │
 ┌────────▼────────┐  ┌──────▼──────┐  ┌───────▼──────┐
-│  PostgreSQL     │  │  ChromaDB    │  │  LangGraph   │
-│  (Eventos,      │  │  (Embeddings│  │  (Orquestación│
-│   Aulas,        │  │   semánticos)│  │   IA)        │
-│   Recomend.)    │  │   [ACTIVO]  │  │   [PENDIENTE]│
+│  PostgreSQL     │  │  ChromaDB    │  │  Groq API    │
+│  (Eventos,      │  │  (Embeddings│  │  (Llama 3.1) │
+│   Aulas,        │  │   semánticos)│  │              │
+│   Recomend.)    │  │   [ACTIVO]  │  │   [ACTIVO]   │
 └─────────────────┘  └─────────────┘  └──────────────┘
 ```
 
@@ -511,8 +507,12 @@ FastAPI genera automáticamente:
    POSTGRES_USER=aulaplus
    POSTGRES_PASSWORD=dev_password_2024
    POSTGRES_DB=aulaplus_db
-   POSTGRES_HOST=localhost
+   POSTGRES_HOST=postgres
    POSTGRES_PORT=5432
+
+   # Configuración de IA (Necesaria para recomendaciones)
+   GROQ_API_KEY=tu_api_key_aqui
+   GROQ_MODEL=llama-3.1-8b-instant
    ```
 
 5. **Levantar servicios con Docker**
@@ -687,18 +687,17 @@ curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
 - `scripts/import_events_from_csv.py`: Importación masiva
 - Documentación: `scripts/TESTING_GUIDE.md`
 
-### ⏳ Fase 4: Integración con LangGraph (PENDIENTE - Después de validar con datos reales)
-- ⏳ Orquestación de agentes de IA
-- ⏳ Generación de texto más natural con LLMs
-- ⏳ Flujo completo automatizado
-- ⏳ Validación humana progresiva
-- **Nota:** Se integrará después de validar el sistema base con datos reales
+### ✅ Fase 4: Orquestación de Agentes con LangGraph (COMPLETADA)
+- ✅ Implementación de Grafo de Estado de 4 nodos.
+- ✅ Integración con Groq (Llama 3.1) para razonamiento experto.
+- ✅ Sistema de "Brain Context" que une datos históricos con generación de lenguaje natural.
+- ✅ Cálculo de confianza dinámico basado en evidencia histórica.
 
-### ⏳ Fase 4: Validación y Despliegue (PENDIENTE)
-- ⏳ Sistema de feedback del docente
-- ⏳ Optimización de contenedores Docker
-- ⏳ Despliegue en nube
-- ⏳ Prueba piloto con datos reales (anonimizados)
+### ⏳ Fase 5: Validación Humana y UI (SIGUIENTE PASO)
+- ⏳ Desarrollo de Frontend Inclusivo (Accesible, One-Tap Reporting).
+- ⏳ Sistema de feedback del docente ("Útil / No útil").
+- ⏳ Despliegue en entorno de producción (Cloud).
+
 
 ## Limitaciones Actuales
 
@@ -718,6 +717,7 @@ Documentación técnica detallada disponible en `docs/`:
 - **[Flujo de IA](docs/ai_workflow.md)**: Flujo completo del sistema desde eventos hasta recomendaciones
 - **[Protección de Datos](docs/privacy_and_data_protection.md)**: Medidas de privacidad y cumplimiento RGPD
 - **[Requisitos de Ciberseguridad](docs/cybersecurity_requirements.md)**: Plan de ciberseguridad y PII scanner
+- **[Arquitectura de Agentes](docs/langgraph_agents_architecture.md)**: Detalle profundo sobre el flujo de LangGraph y Llama 3.1
 - **[Guía de Testing](scripts/TESTING_GUIDE.md)**: Guía completa para probar todas las funcionalidades
 
 ## Contribuciones y Contacto
