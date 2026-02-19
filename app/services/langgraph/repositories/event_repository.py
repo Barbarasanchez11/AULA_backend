@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy import select
 from app.models.database import AsyncSessionLocal
@@ -35,3 +35,20 @@ async def load_event_from_db(event_id: UUID, classroom_id: UUID) -> tuple[Option
             
     except Exception as e:
         return None, f"Database error while loading event: {str(e)}"
+
+
+async def get_all_events_for_classroom(classroom_id: UUID) -> List[Event]:
+    """
+    Fetch all events from the database for a specific classroom.
+    
+    Args:
+        classroom_id: UUID of the classroom
+        
+    Returns:
+        List[Event]: List of SQLAlchemy Event objects
+    """
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(Event).where(Event.classroom_id == classroom_id)
+        )
+        return list(result.scalars().all())

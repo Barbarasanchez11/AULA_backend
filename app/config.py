@@ -27,10 +27,14 @@ class Settings(BaseSettings):
         if not self.database_url and self.postgres_user:
             # Si estamos en Docker, usar el nombre del servicio, sino localhost
             import os
-            host = self.postgres_host or (os.getenv("POSTGRES_HOST", "localhost"))
+            is_docker = os.path.exists("/.dockerenv") or os.getenv("IS_DOCKER") == "true"
             
-            if host == "localhost" and os.path.exists("/.dockerenv"):
-                host = "postgres"  # Nombre del servicio en docker-compose
+            host = self.postgres_host
+            if is_docker:
+                host = "postgres"
+            elif not host:
+                host = "localhost"
+                
             port = self.postgres_port or "5432"
             self.database_url = f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{host}:{port}/{self.postgres_db}"
 
