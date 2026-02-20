@@ -35,7 +35,8 @@ def event_model_to_response(event: Event) -> EventResponse:
         additional_supports=event.additional_supports,
         result=EventResult(event.result),
         observations=event.observations,
-        timestamp=event.timestamp
+        timestamp=event.timestamp,
+        is_planned=event.is_planned
     )
 
 @router.get("/", response_model=List[EventResponse])
@@ -590,7 +591,9 @@ async def create_event(
         supports=[support.value for support in event.supports],
         additional_supports=normalized["additional_supports"],
         result=event.result.value,
-        observations=normalized["observations"]
+        observations=normalized["observations"],
+        is_planned=event.is_planned,
+        timestamp=event.timestamp if event.timestamp else datetime.utcnow()
     )
     
     db.add(db_event)

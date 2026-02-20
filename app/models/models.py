@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Text, Integer
+from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Text, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -41,6 +41,8 @@ class Event(Base):
     # Result and observations
     result = Column(String(50), nullable=False)
     observations = Column(Text, nullable=True)
+    
+    is_planned = Column(Boolean, default=False)
     
     # Timestamp
     timestamp = Column(DateTime, default=datetime.utcnow)

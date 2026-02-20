@@ -46,6 +46,8 @@ class EventBase(BaseModel):
 class EventCreate(EventBase):
     """Esquema para crear un nuevo evento"""
     classroom_id: UUID = Field(..., description="ID del aula a la que pertenece el evento")
+    is_planned: Optional[bool] = Field(False, description="Indica si es un evento planificado")
+    timestamp: Optional[datetime] = Field(None, description="Fecha y hora específica del evento")
 
 
 class EventUpdate(BaseModel):
@@ -71,6 +73,7 @@ class EventResponse(EventBase):
     id: UUID
     classroom_id: UUID
     timestamp: datetime
+    is_planned: bool
     
     class Config:
         from_attributes = True
