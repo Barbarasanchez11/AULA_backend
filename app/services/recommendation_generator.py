@@ -389,8 +389,8 @@ class RecommendationGenerator:
         if pattern_results is None:
             if self.db is None:
                 raise ValueError("Database session required for pattern analysis")
-            pattern_service = PatternAnalysisService(self.db)
-            pattern_results = await pattern_service.analyze_all_patterns(
+            pattern_service = PatternAnalysisService()
+            pattern_results = pattern_service.analyze_all_patterns(
                 classroom_id=classroom_id,
                 events=events,
                 clustering_eps=clustering_eps,

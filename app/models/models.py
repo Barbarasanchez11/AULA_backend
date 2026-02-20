@@ -63,6 +63,7 @@ class Recommendation(Base):
     applicable_context = Column(Text, nullable=False)
     detected_pattern = Column(Text, nullable=False)
     confidence = Column(String(20), nullable=False)
+    is_accepted = Column(Integer, default=0) # 0 para False, 1 para True (compatible con SQLite/Postgres)
     
     # Timestamp
     generated_at = Column(DateTime, default=datetime.utcnow)

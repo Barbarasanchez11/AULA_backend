@@ -13,6 +13,7 @@ class RecommendationBase(BaseModel):
     applicable_context: str = Field(..., min_length=10, max_length=500, description="Cuándo y cómo aplicar esta recomendación")
     detected_pattern: str = Field(..., min_length=10, max_length=500, description="Breve explicación del patrón histórico que la sustenta")
     confidence: ConfidenceLevel = Field(..., description="Nivel de confianza basado en frecuencia del patrón")
+    is_accepted: bool = Field(False, description="Si la recomendación ha sido aceptada por el usuario")
 
 
 class RecommendationCreate(RecommendationBase):
