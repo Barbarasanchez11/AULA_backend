@@ -16,12 +16,102 @@ class EventContext(BaseModel):
     moment_of_day: MomentOfDay = Field(..., description="Momento del día en que ocurrió el evento")
     day_of_week: Optional[DayOfWeek] = Field(None, description="Día de la semana (opcional)")
     duration_minutes: Optional[int] = Field(None, ge=1, description="Duración en minutos (opcional)")
+    
+    @field_validator('day_of_week', mode='before')
+    @classmethod
+    def normalize_day_of_week(cls, v):
+        """
+        Normaliza el valor de day_of_week para aceptar diferentes formatos.
+        
+        Acepta:
+        - Valores en español (lunes, martes, etc.) - case insensitive
+        - Valores en inglés (Monday, monday, etc.) - se mapean a español
+        - Nombres de enum (MONDAY, TUESDAY, etc.) - se mapean a valores
+        - None - se mantiene como None
+        """
+        if v is None:
+            return None
+        
+        # Si ya es un DayOfWeek enum, devolver su valor
+        if isinstance(v, DayOfWeek):
+            return v.value
+        
+        # Convertir a string y normalizar
+        v_str = str(v).strip().lower()
+        
+        # Mapeo de inglés a español
+        english_to_spanish = {
+            'monday': 'lunes',
+            'tuesday': 'martes',
+            'wednesday': 'miercoles',
+            'thursday': 'jueves',
+            'friday': 'viernes',
+            'saturday': 'sabado',
+            'sunday': 'domingo'
+        }
+        
+        # Si está en inglés, mapear a español
+        if v_str in english_to_spanish:
+            v_str = english_to_spanish[v_str]
+        
+        # Mapeo de nombres de enum a valores
+        enum_name_to_value = {
+            'monday': 'lunes',
+            'tuesday': 'martes',
+            'wednesday': 'miercoles',
+            'thursday': 'jueves',
+            'friday': 'viernes',
+            'saturday': 'sabado',
+            'sunday': 'domingo'
+        }
+        
+        # Si coincide con un nombre de enum, usar el valor
+        if v_str in enum_name_to_value:
+            v_str = enum_name_to_value[v_str]
+        
+        # Intentar crear el enum con el valor normalizado
+        try:
+            return DayOfWeek(v_str)
+        except ValueError:
+            # Si falla, devolver el valor original y dejar que Pydantic valide
+            # Esto mostrará un error más claro
+            return v
 
 class EventContextUpdate(BaseModel):
     """Contexto estructurado de un evento para actualización (todos los campos opcionales)"""
     moment_of_day: Optional[MomentOfDay] = Field(None, description="Momento del día en que ocurrió el evento")
     day_of_week: Optional[DayOfWeek] = Field(None, description="Día de la semana (opcional)")
     duration_minutes: Optional[int] = Field(None, ge=1, description="Duración en minutos (opcional)")
+    
+    @field_validator('day_of_week', mode='before')
+    @classmethod
+    def normalize_day_of_week(cls, v):
+        """Mismo validador que EventContext para normalizar day_of_week"""
+        if v is None:
+            return None
+        
+        if isinstance(v, DayOfWeek):
+            return v.value
+        
+        v_str = str(v).strip().lower()
+        
+        english_to_spanish = {
+            'monday': 'lunes',
+            'tuesday': 'martes',
+            'wednesday': 'miercoles',
+            'thursday': 'jueves',
+            'friday': 'viernes',
+            'saturday': 'sabado',
+            'sunday': 'domingo'
+        }
+        
+        if v_str in english_to_spanish:
+            v_str = english_to_spanish[v_str]
+        
+        try:
+            return DayOfWeek(v_str)
+        except ValueError:
+            return v
 
 
 class EventBase(BaseModel):

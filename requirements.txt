@@ -25,6 +25,7 @@ colorama  # Vector database for storing and searching embeddings
 # Dependencies for LangGraph and LLM
 langgraph
 langchain
-langchain-groq
+# langchain-groq  # Desactivado para usar HuggingFace
+langchain-huggingface
 langchain-core
 nest-asyncio  # Allow nested event loops (needed for async DB calls in sync LangGraph nodes)

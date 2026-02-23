@@ -17,10 +17,40 @@ try:
 except ImportError:
     np = None  # Will be available when numpy is installed
 
-try:
-    from sentence_transformers import SentenceTransformer
-except ImportError:
-    SentenceTransformer = None  # Will be available when sentence-transformers is installed
+# LAZY IMPORT: sentence_transformers is imported only when needed
+# This prevents import errors at module level, allowing FastAPI to start
+# even if there are dependency conflicts with transformers/tf-keras
+_SentenceTransformer = None
+
+
+def _get_sentence_transformer():
+    """
+    Lazy import of SentenceTransformer.
+    
+    This function imports sentence_transformers only when it's actually needed,
+    not when the module is first imported. This allows FastAPI to start even
+    if there are dependency conflicts with transformers/tf-keras.
+    
+    Returns:
+        SentenceTransformer class or None if not available
+        
+    Raises:
+        ImportError: If sentence_transformers cannot be imported
+    """
+    global _SentenceTransformer
+    
+    if _SentenceTransformer is None:
+        try:
+            from sentence_transformers import SentenceTransformer
+            _SentenceTransformer = SentenceTransformer
+        except ImportError as e:
+            raise ImportError(
+                "sentence-transformers no está instalado o hay un conflicto de dependencias. "
+                f"Error: {str(e)}. "
+                "Instálalo con: pip install sentence-transformers"
+            ) from e
+    
+    return _SentenceTransformer
 
 
 class EmbeddingService:
@@ -76,12 +106,8 @@ class EmbeddingService:
         if EmbeddingService._fast_model_loaded:
             return
         
-        # Check if SentenceTransformer is available
-        if SentenceTransformer is None:
-            raise ImportError(
-                "sentence-transformers no está instalado. "
-                "Instálalo con: pip install sentence-transformers"
-            )
+        # Lazy import: import SentenceTransformer only when needed
+        SentenceTransformer = _get_sentence_transformer()
         
         try:
             # Load the fast model
@@ -109,12 +135,8 @@ class EmbeddingService:
         if EmbeddingService._quality_model_loaded:
             return
         
-        # Check if SentenceTransformer is available
-        if SentenceTransformer is None:
-            raise ImportError(
-                "sentence-transformers no está instalado. "
-                "Instálalo con: pip install sentence-transformers"
-            )
+        # Lazy import: import SentenceTransformer only when needed
+        SentenceTransformer = _get_sentence_transformer()
         
         try:
             # Load the quality model

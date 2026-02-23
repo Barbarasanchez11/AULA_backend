@@ -551,6 +551,12 @@ async def create_event(
     Validates that the classroom exists before creating the event.
     Automatically generates and stores embeddings for semantic search.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Log the received event data for debugging
+    logger.info(f"Creating event for classroom {event.classroom_id}")
+    logger.debug(f"Event data: {event.model_dump()}")
     # Validate that the classroom exists
     result = await db.execute(select(Classroom).where(Classroom.id == event.classroom_id))
     classroom = result.scalar_one_or_none()
