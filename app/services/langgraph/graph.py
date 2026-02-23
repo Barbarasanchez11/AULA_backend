@@ -26,7 +26,7 @@ def build_recommendation_graph(llm) -> StateGraph:
     Build the LangGraph StateGraph with all nodes and edges.
     
     Args:
-        llm: LLM client (ChatGroq instance) to pass to generate_llm node
+        llm: LLM client (ChatModel or LLM instance) to pass to generate_llm node
         
     Returns:
         StateGraph: Configured graph ready to use.
@@ -37,7 +37,7 @@ def build_recommendation_graph(llm) -> StateGraph:
     if StateGraph is None or END is None:
         raise ImportError(
             "LangGraph dependencies are not installed. "
-            "Install with: pip install langgraph langchain langchain-groq"
+            "Install with: pip install langgraph langchain langchain-huggingface"
         )
     
     # Create StateGraph

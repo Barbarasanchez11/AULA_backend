@@ -15,11 +15,15 @@ class Settings(BaseSettings):
     debug: bool = False
     app_name: str = "AULA+"
     
-    # Groq API configuration
+    # Groq API configuration (Legacy)
     groq_api_key: Optional[str] = None
     groq_model: str = "llama-3.1-8b-instant"  
-    groq_temperature: float = 0.7  
-    groq_max_tokens: int = 1000  
+    
+    # Hugging Face configuration
+    hf_api_key: Optional[str] = None
+    hf_model_id: str = "BSC-LT/salamandra-7b-instruct"
+    llm_temperature: float = 0.7  
+    llm_max_tokens: int = 2048  
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

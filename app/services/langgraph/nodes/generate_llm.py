@@ -61,26 +61,24 @@ def node_generate_llm(state: RecommendationState, llm) -> RecommendationState:
     
     # 4. Invoke LLM
     try:
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_content)
-        ]
+        # Construct the final prompt string for the LLM
+        prompt = f"{system_prompt}\n\n{human_content}"
         
         # Start timing
         start_time = datetime.utcnow()
-        response = llm.invoke(messages)
+        # HuggingFaceEndpoint returns a string directly
+        response_text = llm.invoke(prompt)
         end_time = datetime.utcnow()
         
         # 5. Update State
-        state["llm_response"] = response.content
+        state["llm_response"] = response_text
         
         # Metadata tracking
         if "llm_metadata" not in state:
             state["llm_metadata"] = {}
         
-        state["llm_metadata"]["tokens"] = getattr(response, "response_metadata", {}).get("token_usage", {})
         state["llm_metadata"]["duration_seconds"] = (end_time - start_time).total_seconds()
-        state["llm_metadata"]["model"] = getattr(llm, "model_name", "unknown")
+        state["llm_metadata"]["model"] = getattr(llm, "repo_id", "huggingface_model")
         
         if "metadata" not in state:
             state["metadata"] = {}

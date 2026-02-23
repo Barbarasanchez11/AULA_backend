@@ -9,9 +9,9 @@ from typing import Dict, Any, Optional
 from uuid import UUID
 
 try:
-    from langchain_groq import ChatGroq
+    from langchain_huggingface import HuggingFaceEndpoint
 except ImportError:
-    ChatGroq = None
+    HuggingFaceEndpoint = None
 
 from app.config import settings
 from app.services.vector_store import VectorStore
@@ -40,10 +40,10 @@ class LangGraphService:
             ImportError: If LangGraph dependencies are not installed.
             ValueError: If GROQ_API_KEY is not configured.
         """
-        if ChatGroq is None:
+        if HuggingFaceEndpoint is None:
             raise ImportError(
-                "LangGraph dependencies are not installed. "
-                "Install with: pip install langgraph langchain langchain-groq"
+                "LangGraph dependencies for HuggingFace are not installed. "
+                "Install with: pip install langgraph langchain langchain-huggingface"
             )
         
         # Initialize services
@@ -51,15 +51,18 @@ class LangGraphService:
         self.pattern_service = PatternAnalysisService()
         self.embedding_service = EmbeddingService.get_instance()
         
-        # Initialize Groq LLM client
-        if not settings.groq_api_key:
-            raise ValueError("GROQ_API_KEY not found in configuration. Set it in .env file.")
+        # Initialize HuggingFace LLM client
+        if not settings.hf_api_key:
+            raise ValueError("HF_API_KEY not found in configuration. Set it in .env file.")
         
-        self.llm = ChatGroq(
-            api_key=settings.groq_api_key,
-            model_name=settings.groq_model,
-            temperature=settings.groq_temperature,
-            max_tokens=settings.groq_max_tokens
+        self.llm = HuggingFaceEndpoint(
+            repo_id=settings.hf_model_id,
+            huggingfacehub_api_token=settings.hf_api_key,
+            temperature=settings.llm_temperature,
+            max_new_tokens=settings.llm_max_tokens,
+            task="text-generation",
+            # Repetición y penalización opcional
+            # repetition_penalty=1.1
         )
         
         # Initialize graph (will be built on first use)
