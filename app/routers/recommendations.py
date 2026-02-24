@@ -27,7 +27,7 @@ def recommendation_model_to_response(recommendation: Recommendation) -> Recommen
         applicable_context=recommendation.applicable_context,
         detected_pattern=recommendation.detected_pattern,
         confidence=ConfidenceLevel(recommendation.confidence),
-        is_accepted=bool(recommendation.is_accepted),
+        is_accepted=int(recommendation.is_accepted),
         generated_at=recommendation.generated_at
     )
 
@@ -209,7 +209,7 @@ async def create_recommendation(recommendation: RecommendationCreate, db: AsyncS
 @router.patch("/{id}/accept", response_model=RecommendationResponse)
 async def accept_recommendation(id: UUID, db: AsyncSession = Depends(get_db)):
     """
-    Mark a recommendation as accepted.
+    Mark a recommendation as accepted (is_accepted = 1).
     """
     result = await db.execute(select(Recommendation).where(Recommendation.id == id))
     recommendation = result.scalar_one_or_none()
@@ -217,9 +217,33 @@ async def accept_recommendation(id: UUID, db: AsyncSession = Depends(get_db)):
     if not recommendation:
         raise HTTPException(status_code=404, detail="Recommendation not found")
     
-    recommendation.is_accepted = 1 # Mark as accepted
+    recommendation.is_accepted = 1
     await db.commit()
     await db.refresh(recommendation)
     
     return recommendation_model_to_response(recommendation)
 
+
+@router.patch("/{id}/reject", response_model=RecommendationResponse)
+async def reject_recommendation(id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Mark a recommendation as rejected (is_accepted = -1).
+    
+    Rejected recommendations are kept in the database so the system can
+    learn from them in the future (negative feedback loop).
+    The frontend should use this state to filter out recommendations the
+    teacher has explicitly dismissed.
+    
+    States: 0=pending, 1=accepted, -1=rejected
+    """
+    result = await db.execute(select(Recommendation).where(Recommendation.id == id))
+    recommendation = result.scalar_one_or_none()
+    
+    if not recommendation:
+        raise HTTPException(status_code=404, detail="Recommendation not found")
+    
+    recommendation.is_accepted = -1
+    await db.commit()
+    await db.refresh(recommendation)
+    
+    return recommendation_model_to_response(recommendation)
