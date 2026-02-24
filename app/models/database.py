@@ -4,7 +4,7 @@ from app.config import settings
 
 
 # Create engine with guard for missing database_url
-db_url = settings.database_url or "postgresql+asyncpg://user:pass@localhost/db"
+db_url = settings.database_url or "postgresql+asyncpg://missing_user:missing_pass@missing_host/missing_db"
 engine = create_async_engine(
     db_url,
     echo=settings.debug,

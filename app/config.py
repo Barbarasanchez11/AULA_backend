@@ -30,20 +30,37 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Si no hay database_url pero hay variables individuales, construirla
-        if not self.database_url and self.postgres_user:
-            # Si estamos en Docker, usar el nombre del servicio, sino localhost
-            import os
-            is_docker = os.path.exists("/.dockerenv") or os.getenv("IS_DOCKER") == "true"
+        import os
+        
+        # 1. Prioridad absoluta a DATABASE_URL (inyectada por Railway)
+        db_url = os.getenv("DATABASE_URL")
+        
+        if db_url:
+            # Railway inyecta postgres://, pero necesitamos postgresql+asyncpg://
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+asyncpg://"):
+                db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            self.database_url = db_url
+        
+        # 2. Si no hay DATABASE_URL, intentar construirla desde variables individuales de Railway (PGHOST, etc.)
+        elif not self.database_url:
+            user = os.getenv("PGUSER") or self.postgres_user
+            password = os.getenv("PGPASSWORD") or self.postgres_password
+            host = os.getenv("PGHOST") or self.postgres_host
+            port = os.getenv("PGPORT") or self.postgres_port or "5432"
+            db_name = os.getenv("PGDATABASE") or self.postgres_db
             
-            host = self.postgres_host
-            if is_docker:
-                host = "postgres"
-            elif not host:
-                host = "localhost"
-                
-            port = self.postgres_port or "5432"
-            self.database_url = f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{host}:{port}/{self.postgres_db}"
+            if user and password and host and db_name:
+                self.database_url = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
+            else:
+                # Si estamos local y no hay nada, usar el fallback de desarrollo
+                if not os.getenv("RAILWAY_ENVIRONMENT"):
+                    host = host or "localhost"
+                    user = user or "user"
+                    password = password or "pass"
+                    db_name = db_name or "db"
+                    self.database_url = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
 
     class Config:
         env_file = ".env"
