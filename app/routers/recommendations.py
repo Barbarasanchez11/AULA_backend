@@ -49,8 +49,14 @@ async def list_recommendations(
     if not classroom:
         raise HTTPException(status_code=404, detail="Classroom not found")
     
-    # Get all recommendations for this classroom
-    result = await db.execute(select(Recommendation).where(Recommendation.classroom_id == classroom_id))
+    # Get all recommendations for this classroom, excluding rejected ones (-1)
+    # Rejected recommendations are kept in the DB for model learning but not shown to the frontend
+    result = await db.execute(
+        select(Recommendation).where(
+            Recommendation.classroom_id == classroom_id,
+            Recommendation.is_accepted != -1
+        )
+    )
     recommendations = result.scalars().all()
     
     # Convert models to response schemas
