@@ -15,28 +15,11 @@ from .config import settings
 
 app = FastAPI(title="Aula Plus Backend")
 
-# Configuración de CORS dinámica
-origins = [origin.strip() for origin in settings.allow_origins.split(",") if origin.strip()]
-if settings.debug and "*" not in origins:
-    origins.append("*")
-
-# Evitar conflicto: allow_origins=["*"] no funciona con allow_credentials=True
-allow_all = "*" in origins and not settings.debug # Solo si no es debug (?) 
-# En realidad, si hay "*", allow_credentials debe ser False.
-# Para esta POC, vamos a ser prácticos:
-if "*" in origins:
-    origins = ["*"]
-    allow_credentials = False
-else:
-    allow_credentials = True
-
-logger.info(f"CORS Configured with origins: {origins}")
-
+# Configuración de CORS ultra-permisiva para el Hackathon
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"https://.*\.vercel\.app", # Permitir todos los subdominios de Vercel
-    allow_credentials=allow_credentials,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
