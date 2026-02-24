@@ -118,5 +118,33 @@ AULA+ cuenta con una arquitectura de Layered/Controller-Service Pattern que expo
 - Documentación: 8/10
 - Preparación para producción: 3/10
 
+
 **NOTA GLOBAL: 5.0 / 10**
 **Justificación**: AULA+ demuestra una excelente concepción arquitectónica e intenciones fantásticas orientándose hacia RAG sobre agentes modulares con capas pre-validación (excelente idea PII). Sin embargo, está sumamente anclado a un "laboratorio POC" e infraestructura de desarrollo; salir a producción mañana con dependencias y arquitecturas frágiles ante concurrencia/transaccionalidad en red representaría un riesgo inaceptable para los datos del entorno docente. Necesita estabilizar sus barreras operativas urgentemente.
+
+## 11. Hackathon Deployment Plan (PoC)
+
+Para el despliegue inmediato del PoC y su conexión con el frontend, se recomienda el siguiente plan táctico:
+
+### 11.1 Plataformas Recomendadas
+| Plataforma | Ventajas | Desventajas |
+|------------|----------|-------------|
+| **Render** | Tier gratuito de DB y Web Server. Muy simple. | RAM limitada (512MB). La DB gratuita expira en 90 días. |
+| **Railway** | Excelente rendimiento, más RAM (~2GB+). | No es 100% gratis (usa créditos iniciales). |
+
+### 11.2 Estrategia de Recursos (Critical)
+Dado que usas `sentence-transformers` localmente:
+1. **El Problema**: Cargar los modelos locales consume ~1.2GB de RAM. En Render Free (512MB) el servidor sufrirá un `Out Of Memory (OOM)` y se reiniciará constantemente.
+2. **La Solución**: **Externalizar Embeddings**. Debemos cambiar `EmbeddingService` para llamar a la API de Hugging Face. Esto reduce el consumo de RAM del servidor a <300MB, permitiendo el uso de tiers gratuitos.
+
+### 11.3 Checklist de Despliegue
+- [ ] **Externalizar Embeddings**: Implementar llamadas a HF Inference API (ya planificado en `implementation_plan.md`).
+- [ ] **Configurar Postgres**: Crear instancia gratuita en Render.
+- [ ] **Environment Variables**:
+  - `DATABASE_URL`: URL secreta de la DB en la nube.
+  - `HF_API_KEY`: Tu token de Hugging Face.
+- [ ] **Ajustar Dockerfile**: Eliminar la descarga de modelos pesados para aligerar la imagen.
+- [ ] **CORS**: Configurar la URL de tu frontend (ej. `midominio.vercel.app`) en `app/main.py`.
+
+### 11.4 Recomendación Final para el Hackathon
+Utilizar **Render** con la base de datos gestionada incluída. Para que funcione, el primer paso técnico obligatorio antes de subir nada es completar la **Fase de Externalización de Embeddings**.
