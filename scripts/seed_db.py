@@ -63,8 +63,10 @@ async def seed_db():
     
     async with AsyncSessionLocal() as db:
         # 1. Crear Aula Maestra para desarrollo
+        # ID FIJO: este UUID nunca cambia. Es el que debe usar el frontend.
+        FIXED_CLASSROOM_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         aula_principal = Classroom(
-            id=uuid4(),
+            id=FIXED_CLASSROOM_ID,
             name="Aula TEA - Los Olivos (Demo)",
             type="TEA",
             extra_metadata={"teacher": "Equipo AULA+", "description": "Aula con datos masivos para pruebas"}
