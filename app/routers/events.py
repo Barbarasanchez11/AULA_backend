@@ -601,7 +601,7 @@ async def create_event(
         result=event.result.value,
         observations=normalized["observations"],
         is_planned=event.is_planned,
-        timestamp=event.timestamp if event.timestamp else datetime.utcnow()
+        timestamp=event.timestamp.replace(tzinfo=None) if event.timestamp else datetime.utcnow()
     )
     
     db.add(db_event)

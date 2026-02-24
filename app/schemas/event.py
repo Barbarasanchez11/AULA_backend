@@ -15,7 +15,19 @@ class EventContext(BaseModel):
     """Contexto estructurado de un evento"""
     moment_of_day: MomentOfDay = Field(..., description="Momento del día en que ocurrió el evento")
     day_of_week: Optional[DayOfWeek] = Field(None, description="Día de la semana (opcional)")
-    duration_minutes: Optional[int] = Field(None, ge=1, description="Duración en minutos (opcional)")
+    duration_minutes: Optional[int] = Field(None, description="Duración en minutos (opcional)")
+
+    @field_validator('duration_minutes', mode='before')
+    @classmethod
+    def normalize_duration(cls, v):
+        """Convierte 0 o valores negativos a None para evitar errores 422."""
+        if v is None:
+            return None
+        try:
+            v = int(v)
+        except (TypeError, ValueError):
+            return None
+        return v if v >= 1 else None
     
     @field_validator('day_of_week', mode='before')
     @classmethod
@@ -43,10 +55,10 @@ class EventContext(BaseModel):
         english_to_spanish = {
             'monday': 'lunes',
             'tuesday': 'martes',
-            'wednesday': 'miercoles',
+            'wednesday': 'miércoles',
             'thursday': 'jueves',
             'friday': 'viernes',
-            'saturday': 'sabado',
+            'saturday': 'sábado',
             'sunday': 'domingo'
         }
         
@@ -58,10 +70,10 @@ class EventContext(BaseModel):
         enum_name_to_value = {
             'monday': 'lunes',
             'tuesday': 'martes',
-            'wednesday': 'miercoles',
+            'wednesday': 'miércoles',
             'thursday': 'jueves',
             'friday': 'viernes',
-            'saturday': 'sabado',
+            'saturday': 'sábado',
             'sunday': 'domingo'
         }
         
@@ -81,8 +93,21 @@ class EventContextUpdate(BaseModel):
     """Contexto estructurado de un evento para actualización (todos los campos opcionales)"""
     moment_of_day: Optional[MomentOfDay] = Field(None, description="Momento del día en que ocurrió el evento")
     day_of_week: Optional[DayOfWeek] = Field(None, description="Día de la semana (opcional)")
-    duration_minutes: Optional[int] = Field(None, ge=1, description="Duración en minutos (opcional)")
-    
+    duration_minutes: Optional[int] = Field(None, description="Duración en minutos (opcional)")
+
+    @field_validator('duration_minutes', mode='before')
+    @classmethod
+    def normalize_duration(cls, v):
+        """Convierte 0 o valores negativos a None."""
+        if v is None:
+            return None
+        try:
+            v = int(v)
+        except (TypeError, ValueError):
+            return None
+        return v if v >= 1 else None
+
+
     @field_validator('day_of_week', mode='before')
     @classmethod
     def normalize_day_of_week(cls, v):

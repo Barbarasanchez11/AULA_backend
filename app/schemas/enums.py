@@ -27,10 +27,10 @@ class DayOfWeek(str, Enum):
     """Día de la semana"""
     MONDAY = "lunes"
     TUESDAY = "martes"
-    WEDNESDAY = "miercoles"
+    WEDNESDAY = "miércoles"
     THURSDAY = "jueves"
     FRIDAY = "viernes"
-    SATURDAY = "sabado"
+    SATURDAY = "sábado"
     SUNDAY = "domingo"
 
 
