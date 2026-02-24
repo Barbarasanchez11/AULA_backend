@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     debug: bool = False
     app_name: str = "AULA+"
     
+    # CORS Configuration
+    allow_origins: str = "http://localhost:3000,http://localhost:5173"
+    
     # Groq API configuration (Legacy)
     groq_api_key: Optional[str] = None
     groq_model: str = "llama-3.1-8b-instant"  

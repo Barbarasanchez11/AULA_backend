@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, status
+from datetime import datetime
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from .routers import events, classrooms, recommendations
@@ -10,16 +11,27 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from .config import settings
+
 app = FastAPI(title="Aula Plus Backend")
 
-# Configuración de CORS
+# Configuración de CORS dinámica
+origins = [origin.strip() for origin in settings.allow_origins.split(",")]
+if settings.debug:
+    origins.append("*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # En desarrollo permitimos todo, puedes cambiarlo a ["http://localhost:5173"]
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+def health_check():
+    """Endpoint de salud para monitoreo"""
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 
 # Exception handler for validation errors (422)
