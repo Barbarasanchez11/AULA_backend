@@ -59,6 +59,29 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         }
     )
 
+@app.on_event("startup")
+async def startup_event():
+    """Crea las tablas en la base de datos al arrancar si no existen."""
+    from .models.database import engine, Base
+    from .models import models # Importar modelos para que Base los conozca
+    
+    logger.info("Initializing database tables...")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables initialized successfully.")
+    except Exception as e:
+        logger.error(f"Error initializing database tables: {e}")
+
+# Global exception handler for 500 errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled error on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)}
+    )
+
 app.include_router(admin.router)
 app.include_router(events.router)
 app.include_router(classrooms.router)
