@@ -1,729 +1,247 @@
-# AULA+ — Sistema de Apoyo Pedagógico para Aulas TEA
-
-## ¿Qué es AULA+?
-
-**AULA+ es un sistema de inteligencia artificial que apoya a docentes en aulas TEA analizando eventos pedagógicos y generando recomendaciones basadas en patrones históricos del aula.**
-
-AULA+ es:
-- ✅ **Un complemento de IA** que se integra con sistemas existentes (Raíces, Séneca)
-- ✅ **Un analizador de patrones** que detecta qué estrategias funcionan mejor en cada aula
-- ✅ **Un generador de recomendaciones** que sugiere acciones basadas en evidencia histórica
-- ✅ **Un sistema de apoyo** que respeta la autonomía y decisiones del docente
-- ✅ **Una herramienta pedagógica** que aprende de los datos de cada aula específica
-
-**Principios fundamentales:**
-- NO recopila datos personales de menores
-- NO usa biometría (cámaras, audio, sensores)
-- NO diagnostica ni evalúa clínicamente
-- Cada aula es una unidad independiente (aislamiento de datos)
-- El control humano es siempre prioritario
-
-## ¿Qué problema resuelve?
-
-Los docentes de aulas TEA enfrentan el desafío de identificar qué estrategias pedagógicas funcionan mejor en su aula específica. Analizar manualmente cientos de eventos pedagógicos es complejo y consume mucho tiempo. Cada aula es única y requiere recomendaciones personalizadas basadas en sus propios datos históricos.
-
-**AULA+ resuelve este problema:**
-- **Automatiza el análisis** de eventos pedagógicos para detectar patrones ocultos
-- **Identifica qué apoyos funcionan mejor** en situaciones similares
-- **Detecta momentos críticos** del día o días de la semana más difíciles
-- **Genera recomendaciones accionables** basadas en evidencia histórica del aula
-- **Explica el por qué** de cada recomendación (patrón detectado)
-- **Se integra sin complicar** el flujo de trabajo del docente
-
-## Funcionalidades Principales
-
-### Registro de Eventos Pedagógicos
-
-El sistema registra eventos anonimizados del aula en cuatro categorías:
-
-1. **TRANSICIÓN**: Cambios entre actividades, espacios o estados
-   - Ejemplo: "Transición de juego libre a asamblea", "Transición de aula a patio"
-
-2. **CAMBIO_DE_RUTINA**: Modificaciones a rutinas establecidas
-   - Ejemplo: "Cambio de horario de recreo", "Actividad nueva no prevista"
-
-3. **APRENDIZAJE**: Actividades pedagógicas estructuradas
-   - Ejemplo: "Trabajo en mesa individual", "Actividad grupal"
-
-4. **REGULACIÓN**: Situaciones relacionadas con estados emocionales o conductuales observables
-   - Ejemplo: "Momento de calma", "Necesidad de espacio"
-
-**Estructura de un evento:**
-- Tipo de evento (obligatorio)
-- Descripción breve y objetiva (obligatorio)
-- Contexto: momento del día (mañana/mediodía/tarde), día de la semana (opcional)
-- Apoyos utilizados: lista predefinida (obligatorio) + texto libre opcional
-- Resultado: EXITOSO | PARCIAL | DIFICULTAD
-- Observaciones: texto libre opcional
-
-**Lista predefinida de apoyos:**
-- Anticipación visual
-- Adaptación del entorno
-- Mediación verbal
-- Pausa sensorial
-- Apoyo individual del adulto
-
-### Generación de Recomendaciones
-
-**Modo principal: bajo demanda del docente**
-- El docente solicita recomendaciones cuando las necesita
-- El sistema no interrumpe ni lanza alertas automáticas
-- Las recomendaciones se basan en patrones históricos del aula
-
-**Excepción controlada:**
-- Si se registra un evento planificado (ej. salida, cambio de rutina), el sistema puede sugerir orientaciones generales automáticamente
-- Siempre visibles como "propuestas", nunca como acciones automáticas
-
-**Estructura de una recomendación:**
-- Tipo: ANTICIPACIÓN | ESTRATEGIA | ADAPTACIÓN
-- Título: descriptivo y accionable
-- Descripción: explicación clara de la recomendación
-- Contexto aplicable: cuándo/cómo aplicar
-- Patrón detectado: breve explicación del patrón histórico que la sustenta
-- Confianza: ALTA | MEDIA | BAJA (basada en frecuencia del patrón)
-- Fecha de generación
-
-**Validación humana progresiva:**
-- Nivel 1 (inicio): recomendaciones basadas en patrones observados y literatura pedagógica general
-- Nivel 2 (escalable): feedback del docente ("útil / no útil") y selección de recomendaciones aplicadas
-- Nivel 3 (futuro): curaduría por expertos pedagógicos
-- **Importante:** Nunca se afirma que una recomendación es "correcta", solo "coherente con experiencias previas del aula"
-
-### Acceso Familiar
-
-**Solo a través del docente:**
-- Las familias NO acceden directamente al sistema
-- El docente genera resúmenes interpretados para las familias
-
-**Qué ven las familias:**
-- Resúmenes semanales interpretados: "Esta semana se trabajó la anticipación de cambios"
-- Orientaciones generales para casa, no informes de conducta
-
-**Qué NO ven:**
-- Eventos en bruto
-- Análisis del aula
-- Recomendaciones internas del sistema
-
-## ¿Qué NO es AULA+?
-
-**Límites explícitos y claros - Scope congelado:**
-
-AULA+ **NO es:**
-- ❌ **Un sistema de diagnóstico clínico** - No diagnostica ni evalúa clínicamente
-- ❌ **Un sistema de identificación** - No identifica ni etiqueta a estudiantes individuales
-- ❌ **Un sistema de biometría** - No usa cámaras, audio, sensores, reconocimiento facial
-- ❌ **Un sistema de datos personales** - No recopila nombres, DNI, fotos, ni información identificable
-- ❌ **Un sistema de predicción individual** - No predice comportamientos de estudiantes específicos
-- ❌ **Un sistema de alertas automáticas** - No genera alertas automáticas a familias o administración
-- ❌ **Un sistema de decisión automática** - No toma decisiones que afecten a personas
-- ❌ **Un sistema de compartición de datos** - No comparte datos entre aulas (cada aula es independiente)
-- ❌ **Un sistema de entrenamiento externo** - No usa datos para entrenar modelos externos o comerciales
-- ❌ **Un reemplazo del docente** - No sustituye decisiones pedagógicas ni evaluación profesional
-- ❌ **Un sistema de informes clínicos** - No genera informes clínicos ni psicológicos
-- ❌ **Un sistema de evaluación especializada** - No reemplaza la intervención especializada
-
-**AULA+ es únicamente:**
-- ✅ Un sistema de análisis de patrones históricos del aula
-- ✅ Un generador de recomendaciones basadas en evidencia
-- ✅ Una herramienta de apoyo que respeta la autonomía del docente
-- ✅ Un complemento que se integra con sistemas existentes
-
-**🔒 Scope congelado:** El alcance del sistema está definido y congelado. No se añadirán nuevas funcionalidades fuera de este alcance hasta completar la validación con datos reales.
-
-## Arquitectura Técnica
-
-### Stack Tecnológico
-
-- **Backend**: Python 3.11 + FastAPI
-- **Base de datos relacional**: PostgreSQL 16
-- **ORM**: SQLAlchemy 2.0 (async)
-- **Validación de datos**: Pydantic v2
-- **Embeddings semánticos**: sentence-transformers (mpnet + distiluse)
-- **Vector DB**: ChromaDB (persistente, por aula)
-- **Análisis de patrones**: scikit-learn (DBSCAN clustering)
-- **Orquestación IA / Agentes**: LangGraph (Activo - Implementado con 4 nodos)
-- **Proveedor LLM**: Groq (Llama 3.1-8b-instant)
-- **Despliegue**: Contenedores Docker, escalable por aula
-- **Visor de BD**: Adminer (puerto 8081)
-
-### Estructura del Proyecto
-
-```
-AULA_backend/
-├── app/
-│   ├── main.py                 # Aplicación FastAPI principal
-│   ├── services/
-│   │   ├── langgraph/          # Orquestación de Agentes
-│   │   │   ├── nodes/          # Nodos del grafo (Receive, Search, LLM, Validate)
-│   │   │   ├── services/       # Servicios de soporte (ContextSearcher, ContextService)
-│   │   │   ├── graph.py        # Definición del flujo del grafo
-│   │   │   ├── state.py        # Definición del estado compartido
-│   │   │   └── service.py      # Orquestador principal del grafo
-│   │   ├── embeddingService.py # Generación de vectores
-│   │   ├── vector_store.py     # Gestión de ChromaDB
-│   │   └── pattern_analysis.py # Cerebro analítico (Clustering y Tendencias)
-├── docs/
-│   └── langgraph_agents_architecture.md # Documentación detallada de agentes
-├── scripts/
-│   └── test_langgraph_full.py  # Test de integración del flujo completo
-```
-
-### Flujo de Funcionamiento
-
-```
-1. REGISTRO DE EVENTO
-   └─> Docente registra evento anonimizado vía POST /events/
-   └─> FastAPI valida datos con Pydantic (schemas)
-   └─> Router valida que el classroom_id existe
-   └─> Se crea objeto Event (SQLAlchemy)
-   └─> Se almacena en PostgreSQL
-   └─> Se devuelve EventResponse (JSON)
-
-2. PROCESAMIENTO AUTOMÁTICO (en tiempo real)
-   └─> Al crear/actualizar evento, se genera embedding automáticamente (background task)
-   └─> Embedding se almacena en ChromaDB (vector database)
-   └─> Sistema permite búsqueda semántica de eventos similares
-
-3. ANÁLISIS DE PATRONES (bajo demanda)
-   └─> Docente solicita análisis vía GET /events/patterns
-   └─> Sistema analiza eventos históricos del aula:
-       └─> Clustering semántico (DBSCAN) para agrupar eventos similares
-       └─> Patrones temporales (día de semana, momento del día)
-       └─> Efectividad de apoyos utilizados
-   └─> Devuelve resultados del análisis
-
-4. GENERACIÓN DE RECOMENDACIONES (bajo demanda)
-   └─> Docente solicita recomendaciones vía POST /recommendations/generate
-   └─> Sistema genera recomendaciones basadas en patrones detectados:
-       └─> Considera contexto temporal y situacional
-       └─> Prioriza recomendaciones con mayor evidencia histórica
-       └─> Incluye nivel de confianza (ALTA/MEDIA/BAJA)
-       └─> Explica el patrón detectado que sustenta la recomendación
-   └─> Almacena recomendaciones generadas en PostgreSQL
-
-5. CONSULTA DE RECOMENDACIONES
-   └─> Docente consulta recomendaciones vía GET /recommendations/?classroom_id={id}
-   └─> Sistema consulta PostgreSQL
-   └─> Devuelve lista de recomendaciones con detalles completos
-   └─> Docente puede consultar detalles específicos vía GET /recommendations/{id}
-
-6. BÚSQUEDA SEMÁNTICA
-   └─> Docente busca eventos similares vía GET /events/similar
-   └─> Sistema usa embeddings para encontrar eventos semánticamente similares
-   └─> Devuelve eventos con score de similitud
-   └─> Permite aprender de situaciones pasadas similares
-```
-
-### Diagrama de Arquitectura Actual
-
-```
-┌─────────────────┐
-│   Docente       │
-│   (API Client)  │
-│   Swagger UI    │
-└────────┬────────┘
-         │
-         │ HTTP/REST (FastAPI)
-         │
-┌────────▼─────────────────────────────────────┐
-│         Backend FastAPI                      │
-│  ┌──────────────────────────────────────┐   │
-│  │  Routers (app/routers/):              │   │
-│  │  - /classrooms (5 endpoints)          │   │
-│  │  - /events (5 endpoints)              │   │
-│  │  - /recommendations (3 endpoints)     │   │
-│  └──────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────┐   │
-│  │  Schemas (app/schemas/):              │   │
-│  │  - Validación Pydantic                │   │
-│  │  - Conversión modelo ↔ schema         │   │
-│  └──────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────┐   │
-│  │  Models (app/models/):                │   │
-│  │  - SQLAlchemy ORM                     │   │
-│  │  - Relaciones y constraints           │   │
-│  └──────────────────────────────────────┘   │
-└────────┬─────────────────────────────────────┘
-         │
-         ├──────────────────┬──────────────────┐
-         │                  │                  │
-┌────────▼────────┐  ┌──────▼──────┐  ┌───────▼──────┐
-│  PostgreSQL     │  │  ChromaDB    │  │  Groq API    │
-│  (Eventos,      │  │  (Embeddings│  │  (Llama 3.1) │
-│   Aulas,        │  │   semánticos)│  │              │
-│   Recomend.)    │  │   [ACTIVO]  │  │   [ACTIVO]   │
-└─────────────────┘  └─────────────┘  └──────────────┘
-```
-
-### Diagrama de Flujo de Datos
-
-```
-┌──────────────┐
-│   Cliente    │
-│  (HTTP/JSON) │
-└──────┬───────┘
-       │
-       │ 1. Request HTTP
-       ▼
-┌─────────────────────────────────┐
-│      FastAPI Router             │
-│  (app/routers/*.py)             │
-│  - Valida ruta y método         │
-│  - Extrae parámetros            │
-└──────┬──────────────────────────┘
-       │
-       │ 2. Valida con Pydantic
-       ▼
-┌─────────────────────────────────┐
-│   Pydantic Schema               │
-│  (app/schemas/*.py)             │
-│  - Valida tipos                  │
-│  - Valida enums                  │
-│  - Valida longitudes             │
-└──────┬──────────────────────────┘
-       │
-       │ 3. Si válido → Continúa
-       │    Si inválido → 422 Error
-       ▼
-┌─────────────────────────────────┐
-│   SQLAlchemy Model              │
-│  (app/models/models.py)         │
-│  - Crea/lee/actualiza/elimina    │
-│  - Maneja relaciones             │
-└──────┬──────────────────────────┘
-       │
-       │ 4. Query SQL
-       ▼
-┌─────────────────────────────────┐
-│      PostgreSQL                  │
-│  - Almacena datos                │
-│  - Mantiene integridad           │
-└──────┬──────────────────────────┘
-       │
-       │ 5. Resultado
-       ▼
-┌─────────────────────────────────┐
-│   Conversión a Schema            │
-│  - Model → Pydantic Schema      │
-│  - Enums, fechas, etc.          │
-└──────┬──────────────────────────┘
-       │
-       │ 6. Response JSON
-       ▼
-┌──────────────┐
-│   Cliente    │
-│  (HTTP/JSON) │
-└──────────────┘
-```
-
-### API Endpoints Implementados
-
-#### Classrooms (`/classrooms`)
-
-| Método | Ruta | Descripción | Status Code |
-|--------|------|-------------|-------------|
-| `GET` | `/classrooms/` | Lista todas las aulas del sistema | 200 |
-| `GET` | `/classrooms/{id}` | Obtiene un aula específica por ID | 200 / 404 |
-| `POST` | `/classrooms/` | Crea una nueva aula | 201 / 422 |
-| `PUT` | `/classrooms/{id}` | Actualiza un aula (campos opcionales) | 200 / 404 |
-| `DELETE` | `/classrooms/{id}` | Elimina un aula y sus eventos/recomendaciones | 204 / 404 |
-
-**Ejemplo de uso:**
-```bash
-# Crear aula
-POST /classrooms/
-{
-  "name": "Aula TEA 1",
-  "type": "TEA"
-}
-
-# Listar todas las aulas
-GET /classrooms/
-
-# Obtener aula específica
-GET /classrooms/{uuid}
-```
-
-#### Events (`/events`)
-
-| Método | Ruta | Descripción | Status Code |
-|--------|------|-------------|-------------|
-| `GET` | `/events/?classroom_id={id}` | Lista eventos de un aula específica | 200 / 404 |
-| `GET` | `/events/{id}` | Obtiene un evento específico por ID | 200 / 404 |
-| `GET` | `/events/similar?event_id={id}&classroom_id={id}` | Busca eventos similares usando embeddings | 200 / 404 |
-| `GET` | `/events/patterns?classroom_id={id}` | Analiza patrones en eventos del aula | 200 / 404 |
-| `POST` | `/events/` | Crea un nuevo evento pedagógico (genera embedding automáticamente) | 201 / 422 / 404 |
-| `PUT` | `/events/{id}` | Actualiza un evento (regenera embedding si es necesario) | 200 / 404 |
-| `DELETE` | `/events/{id}` | Elimina un evento (y su embedding) | 204 / 404 |
-
-**Ejemplo de uso:**
-```bash
-# Crear evento
-POST /events/
-{
-  "classroom_id": "uuid-del-aula",
-  "event_type": "TRANSICION",
-  "description": "Transición de juego libre a asamblea",
-  "context": {
-    "moment_of_day": "mañana",
-    "day_of_week": "lunes",
-    "duration_minutes": 5
-  },
-  "supports": ["Anticipación visual", "Mediación verbal"],
-  "result": "EXITOSO"
-}
-
-# Listar eventos de un aula
-GET /events/?classroom_id={uuid}
-
-# Actualizar solo el resultado
-PUT /events/{uuid}
-{
-  "result": "PARCIAL"
-}
-```
-
-#### Recommendations (`/recommendations`)
-
-| Método | Ruta | Descripción | Status Code |
-|--------|------|-------------|-------------|
-| `GET` | `/recommendations/?classroom_id={id}` | Lista recomendaciones de un aula | 200 / 404 |
-| `GET` | `/recommendations/{id}` | Obtiene una recomendación específica por ID | 200 / 404 |
-| `POST` | `/recommendations/` | Crea una recomendación manualmente (útil para testing) | 201 / 422 / 404 |
-| `POST` | `/recommendations/generate?classroom_id={id}` | Genera recomendaciones automáticamente desde patrones | 201 / 404 |
-
-**Nota:** Las recomendaciones se generan automáticamente analizando patrones históricos del aula. El POST manual es útil para desarrollo y testing.
-
-**Ejemplo de uso:**
-```bash
-# Listar recomendaciones de un aula
-GET /recommendations/?classroom_id={uuid}
-
-# Obtener recomendación específica
-GET /recommendations/{uuid}
-```
-
-### Principios de Diseño Aplicados
-
-#### SOLID
-- **Single Responsibility**: Cada router maneja un solo recurso
-- **Open/Closed**: Fácil añadir nuevos endpoints sin modificar existentes
-- **Dependency Inversion**: Dependemos de abstracciones (schemas, models)
-
-#### KISS (Keep It Simple, Stupid)
-- Un archivo por recurso
-- Lógica clara y directa
-- Sin complejidad innecesaria
-
-#### Separación de Responsabilidades
-- **Routers**: Manejan HTTP, validan entrada, llaman a servicios
-- **Schemas**: Validan y estructuran datos
-- **Models**: Acceso a base de datos
-- **Services**: Lógica de negocio (futuro)
-
-### Validación y Manejo de Errores
-
-#### Validación Automática (Pydantic)
-- Tipos de datos (string, int, UUID, enum)
-- Longitudes mínimas/máximas
-- Valores obligatorios vs opcionales
-- Enums con valores permitidos
-- **Código de error**: 422 Unprocessable Entity
-
-#### Errores Personalizados
-- **404 Not Found**: Recurso no existe (aula, evento, recomendación)
-- **422 Validation Error**: Datos inválidos (Pydantic)
-- **500 Internal Server Error**: Error del servidor (capturado automáticamente)
-
-### Acceso a Base de Datos
-
-#### Dependency Injection
-```python
-async def endpoint(db: AsyncSession = Depends(get_db)):
-    # db es la sesión de base de datos
-    # Se cierra automáticamente al terminar
-```
-
-#### Transacciones
-- Cada request tiene su propia sesión
-- `commit()` guarda cambios
-- `refresh()` recarga objeto desde BD
-- Rollback automático en caso de error
-
-### Documentación Automática
-
-FastAPI genera automáticamente:
-- **Swagger UI**: `http://localhost:8000/docs` (interactivo)
-- **ReDoc**: `http://localhost:8000/redoc` (documentación alternativa)
-- Incluye todos los endpoints, schemas, y ejemplos
-
-## Protección de Datos y Privacidad
-
-- **Anonimización completa**: Todos los eventos son anonimizados desde el registro
-- **Aislamiento por aula**: Cada aula es una unidad independiente, sin compartición de datos
-- **Minimización de datos**: Solo se recopila lo estrictamente necesario para el análisis de patrones
-- **Control docente**: El docente tiene control total sobre qué eventos registrar y qué recomendaciones consultar
-- **Cumplimiento RGPD**: Transparencia, minimización, limitación de propósito y control humano
-
-## Uso en el Aula
-
-1. El docente registra eventos pedagógicos anonimizados cuando ocurren o se planifican
-2. El sistema procesa eventos históricos periódicamente para identificar patrones (futuro)
-3. El docente solicita recomendaciones bajo demanda cuando las necesita
-4. El docente aplica las recomendaciones que considere apropiadas
-5. El docente puede generar resúmenes interpretados para las familias
-6. Los patrones se acumulan y ajustan gradualmente, manteniendo historial del aula sin identificar alumnos
-
-## Inicio Rápido
-
-### Requisitos Previos
-
-- Python 3.11+
-- Docker y Docker Compose
-- Git
-
-### Instalación
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone <repository-url>
-   cd AULA_backend
-   ```
-
-2. **Crear entorno virtual**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
-   ```
-
-3. **Instalar dependencias**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configurar variables de entorno**
-   Crear archivo `.env`:
-   ```env
-   POSTGRES_USER=aulaplus
-   POSTGRES_PASSWORD=dev_password_2024
-   POSTGRES_DB=aulaplus_db
-   POSTGRES_HOST=postgres
-   POSTGRES_PORT=5432
-
-   # Configuración de IA (Necesaria para recomendaciones)
-   GROQ_API_KEY=tu_api_key_aqui
-   GROQ_MODEL=llama-3.1-8b-instant
-   ```
-
-5. **Levantar servicios con Docker**
-   ```bash
-   docker-compose up -d
-   ```
-
-6. **Inicializar base de datos**
-   ```bash
-   python -m app.models.init_db
-   ```
-
-7. **Iniciar servidor FastAPI**
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-
-### Acceso a la API
-
-- **API Base**: `http://localhost:8000`
-- **Documentación Swagger**: `http://localhost:8000/docs`
-- **ReDoc**: `http://localhost:8000/redoc`
-- **Adminer (BD)**: `http://localhost:8081`
-
-### Probar los Endpoints
-
-#### Opción 1: Swagger UI (Recomendado)
-
-1. Abre `http://localhost:8000/docs` en tu navegador
-2. Expande cualquier endpoint
-3. Haz clic en "Try it out"
-4. Rellena los datos necesarios
-5. Haz clic en "Execute"
-6. Verás la respuesta
-
-#### Opción 2: curl
-
-```bash
-# Listar aulas
-curl http://localhost:8000/classrooms/
-
-# Crear aula
-curl -X POST http://localhost:8000/classrooms/ \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Aula TEA 1", "type": "TEA"}'
-
-# Listar eventos de un aula
-curl "http://localhost:8000/events/?classroom_id=UUID_AQUI"
-```
-
-### Flujo de Prueba Completo
-
-1. **Crear un aula**
-   ```bash
-   POST /classrooms/
-   {
-     "name": "Aula TEA 1",
-     "type": "TEA"
-   }
-   ```
-   Copia el `id` de la respuesta.
-
-2. **Crear un evento**
-   ```bash
-   POST /events/
-   {
-     "classroom_id": "id-del-paso-1",
-     "event_type": "TRANSICION",
-     "description": "Transición de juego libre a asamblea matutina",
-     "context": {
-       "moment_of_day": "mañana",
-       "day_of_week": "lunes",
-       "duration_minutes": 5
-     },
-     "supports": ["Anticipación visual"],
-     "result": "EXITOSO"
-   }
-   ```
-
-3. **Listar eventos del aula**
-   ```bash
-   GET /events/?classroom_id=id-del-paso-1
-   ```
-
-4. **Crear una recomendación**
-   ```bash
-   POST /recommendations/
-   {
-     "classroom_id": "id-del-paso-1",
-     "recommendation_type": "ANTICIPACION",
-     "title": "Anticipar cambios de rutina",
-     "description": "Recomendación basada en patrones observados...",
-     "applicable_context": "Aplicar en cambios de rutina",
-     "detected_pattern": "Patrón detectado en eventos similares",
-     "confidence": "ALTA"
-   }
-   ```
-
-5. **Listar recomendaciones**
-   ```bash
-   GET /recommendations/?classroom_id=id-del-paso-1
-   ```
-
-## Beneficios Sociales
-
-- Mejora la calidad educativa de aulas TEA y su integración
-- Facilita decisiones pedagógicas basadas en datos, respetando autonomía docente
-- Proporciona información útil a familias sin comprometer la privacidad
-- Escalable: de un piloto a cientos de aulas, manteniendo costes controlados
-- Cada aula aprende de su propia experiencia histórica
-
-## Roadmap y Estado del Proyecto
-
-### ✅ Fase 1: Fundamentos (COMPLETADA)
-- ✅ Estructura de base de datos (PostgreSQL)
-- ✅ Backend FastAPI con 13 endpoints funcionales
-- ✅ Modelos de datos (Classroom, Event, Recommendation)
-- ✅ Validación de esquemas Pydantic
-- ✅ Relaciones entre tablas configuradas
-- ✅ Adminer configurado para visualización de BD
-- ✅ Documentación de estructura de BD
-
-**Endpoints implementados:**
-- 5 endpoints de Classrooms (CRUD completo)
-- 7 endpoints de Events (CRUD completo + similar + patterns)
-- 4 endpoints de Recommendations (GET list, GET by ID, POST manual, POST generate automático)
-
-### ✅ Fase 2: Base IA (COMPLETADA)
-- ✅ Sistema de embeddings híbrido (distiluse + mpnet)
-- ✅ Vector DB con ChromaDB (persistente, por aula)
-- ✅ Búsqueda semántica de eventos similares
-- ✅ Integración automática con eventos (background tasks)
-- ✅ Endpoint: `GET /events/similar`
-
-**Archivos:**
-- `app/services/embeddingService.py`: Servicio de embeddings híbrido
-- `app/services/vector_store.py`: Gestión de ChromaDB
-- Documentación: `docs/embeddings_implementation.md`
-
-### ✅ Fase 3: Análisis de Patrones y Recomendaciones (COMPLETADA - Sin LangGraph)
-- ✅ Análisis de patrones (clustering, temporal, efectividad)
-- ✅ Generación automática de recomendaciones desde patrones
-- ✅ Sistema de confianza (ALTA/MEDIA/BAJA)
-- ✅ Explicabilidad de patrones detectados
-- ✅ Recomendaciones con lenguaje más natural y pedagógico
-- ✅ Lazy loading de modelos para optimizar inicio
-- ✅ Procesamiento en background para embeddings
-
-**Endpoints implementados:**
-- `GET /events/patterns`: Analiza patrones en eventos
-- `POST /recommendations/generate`: Genera recomendaciones automáticamente
-
-**Archivos:**
-- `app/services/pattern_analysis.py`: Análisis de patrones
-- `app/services/recommendation_generator.py`: Generación de recomendaciones
-- Documentación: `docs/phase3_pattern_analysis.md`
-
-### ✅ Fase 3.5: Preparación para Datos Reales (COMPLETADA)
-- ✅ Servicio de normalización de texto (`TextNormalizer`)
-- ✅ Servicio de validación PII mejorado (`PIIValidator`)
-  - Detección de DNI/NIE, teléfonos, emails
-  - Detección mejorada de nombres (múltiples estrategias)
-  - Detección de fechas y direcciones
-- ✅ Script de importación masiva desde CSV
-- ✅ Validación de esquemas en importación
-- ✅ Integración de normalización y PII en endpoints
-- ✅ Generación automática de embeddings en importación
-
-**Archivos:**
-- `app/services/text_normalizer.py`: Normalización de texto
-- `app/services/pii_validator.py`: Validación de PII
-- `scripts/import_events_from_csv.py`: Importación masiva
-- Documentación: `scripts/TESTING_GUIDE.md`
-
-### ✅ Fase 4: Orquestación de Agentes con LangGraph (COMPLETADA)
-- ✅ Implementación de Grafo de Estado de 4 nodos.
-- ✅ Integración con Groq (Llama 3.1) para razonamiento experto.
-- ✅ Sistema de "Brain Context" que une datos históricos con generación de lenguaje natural.
-- ✅ Cálculo de confianza dinámico basado en evidencia histórica.
-
-### ⏳ Fase 5: Validación Humana y UI (SIGUIENTE PASO)
-- ⏳ Desarrollo de Frontend Inclusivo (Accesible, One-Tap Reporting).
-- ⏳ Sistema de feedback del docente ("Útil / No útil").
-- ⏳ Despliegue en entorno de producción (Cloud).
-
-
-## Limitaciones Actuales
-
-- No diagnostica ni sustituye decisiones pedagógicas
-- No usa sensores biométricos ni identifica alumnos individuales
-- Requiere supervisión humana constante para validar recomendaciones
-- Las recomendaciones son sugerencias, no prescripciones
-- El sistema aprende de patrones históricos, no de literatura clínica
-
-## Documentación
-
-Documentación técnica detallada disponible en `docs/`:
-
-- **[Estado Actual del Proyecto](docs/current_status.md)**: Estado completo, mejoras implementadas y próximos pasos
-- **[Implementación de Embeddings](docs/embeddings_implementation.md)**: Sistema híbrido de embeddings, lazy loading y vector store
-- **[Análisis de Patrones y Recomendaciones](docs/phase3_pattern_analysis.md)**: Servicios de análisis de patrones y generación de recomendaciones
-- **[Flujo de IA](docs/ai_workflow.md)**: Flujo completo del sistema desde eventos hasta recomendaciones
-- **[Protección de Datos](docs/privacy_and_data_protection.md)**: Medidas de privacidad y cumplimiento RGPD
-- **[Requisitos de Ciberseguridad](docs/cybersecurity_requirements.md)**: Plan de ciberseguridad y PII scanner
-- **[Arquitectura de Agentes](docs/langgraph_agents_architecture.md)**: Detalle profundo sobre el flujo de LangGraph y Llama 3.1
-- **[Guía de Testing](scripts/TESTING_GUIDE.md)**: Guía completa para probar todas las funcionalidades
-
-## Contribuciones y Contacto
-
-Este proyecto está en desarrollo activo. Para contribuciones o consultas, contactar con el equipo de desarrollo.
+# AULA+ Backend
+
+> **Capa de inteligencia pedagógica para aulas TEA**  
+> Sistema de agentes IA que detecta patrones del entorno educativo y genera recomendaciones preventivas — sin registrar datos personales de ningún alumno.
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11-green.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![Salamandra](https://img.shields.io/badge/LLM-Salamandra--7b--instruct-orange.svg)](https://huggingface.co/BSC-LT/salamandra-7b-instruct)
+[![ALIA](https://img.shields.io/badge/infraestructura-ALIA%20%2F%20BSC--CNS-blue.svg)](https://alia.gob.es)
 
 ---
 
-**Nota importante**: Este sistema está diseñado como herramienta de apoyo pedagógico, no como sistema de diagnóstico o evaluación clínica. Todas las decisiones finales recaen en el profesional docente.
+## ¿Qué es AULA+?
+
+AULA+ es el primer sistema de análisis pedagógico para aulas TEA (Trastorno del Espectro Autista) que analiza el **entorno educativo** en lugar del alumno individual.
+
+En lugar de registrar conductas o generar perfiles de alumnos, AULA+ captura eventos pedagógicos del aula — transiciones, apoyos utilizados, tipos de actividad — y detecta los patrones contextuales que preceden a los momentos difíciles. El objetivo es pasar de un modelo reactivo (intervenir en la crisis) a uno preventivo (anticipar las condiciones que la producen).
+
+El sistema se integra sobre plataformas educativas existentes como **Raíces** (Madrid) o **Séneca** (Andalucía) sin reemplazarlas. Es una capa de inteligencia pedagógica sobre la infraestructura ya invertida.
+
+**El motor de lenguaje es [Salamandra-7b-instruct](https://huggingface.co/BSC-LT/salamandra-7b-instruct)**, desarrollado por el Barcelona Supercomputing Center (BSC-CNS) dentro de la iniciativa pública [ALIA](https://alia.gob.es) del Gobierno de España, verificado por AESIA. Los datos del alumnado nunca salen de soberanía europea.
+
+---
+
+## Principios de diseño
+
+- **Privacidad por diseño** — el sistema es arquitectónicamente incapaz de almacenar datos personales de alumnos. No existe ningún campo de "nombre de alumno" en el modelo de datos. El `PIIValidator` bloquea automáticamente cualquier dato identificativo antes de persistirlo.
+- **Human-in-the-loop** — el sistema propone. El docente decide siempre. Sin acciones automáticas, sin notificaciones sin validación explícita.
+- **Explicabilidad** — cada recomendación incluye el patrón concreto que la sustenta. No hay caja negra.
+- **Soberanía tecnológica europea** — stack completo sobre infraestructura pública: Salamandra/ALIA para LLM, sentence-transformers en local para embeddings, PostgreSQL y ChromaDB en servidores propios o de la Consejería.
+- **Complementariedad** — no sustituye Raíces ni Séneca. Los amplía con la capa que les falta.
+
+---
+
+## Stack técnico
+
+| Componente | Tecnología | Función |
+|---|---|---|
+| API REST | **FastAPI** + Python 3.11 | 13 endpoints con validación Pydantic v2, async |
+| Base de datos relacional | **PostgreSQL 16** | Eventos, aulas, recomendaciones, logs de auditoría |
+| ORM | **SQLAlchemy 2.0** | Acceso a datos async |
+| Embeddings semánticos | **sentence-transformers** (mpnet + distiluse) | Vectorización de eventos en local — sin API externa |
+| Base de datos vectorial | **ChromaDB** (persistente) | Búsqueda semántica por aula, instancia independiente por aula |
+| Detección de patrones | **scikit-learn — DBSCAN** | Clustering semántico + análisis temporal + efectividad de apoyos |
+| Sistema de agentes | **LangGraph** (4 nodos) | Orchestración: Receive → Search → LLM → Validate |
+| Modelo de lenguaje | **Salamandra-7b-instruct** (BSC-CNS/ALIA) | Generación de recomendaciones y resúmenes en castellano |
+| Privacidad | **PIIValidator + TextNormalizer** | Detección y bloqueo de datos personales en cada ingesta |
+| Despliegue | **Docker Compose** | Contenedorización reproducible de todos los servicios |
+
+---
+
+## Arquitectura del sistema de agentes
+
+```
+Solicitud docente
+       │
+       ▼
+┌─────────────┐
+│   RECEIVE   │  Interpreta la solicitud y valida el contexto del aula
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   SEARCH    │  Recupera eventos similares de ChromaDB (búsqueda semántica)
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│     LLM     │  Salamandra-7b-instruct genera texto pedagógico en castellano
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  VALIDATE   │  Verifica coherencia, calcula nivel de confianza (ALTA/MEDIA/BAJA)
+└──────┬──────┘
+       │
+       ▼
+Recomendación con patrón explicado → Docente decide
+```
+
+---
+
+## Endpoints principales
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `POST` | `/classrooms` | Crear un aula nueva |
+| `GET` | `/classrooms/{id}` | Datos del aula |
+| `POST` | `/events` | Registrar evento pedagógico (con validación PII) |
+| `GET` | `/events/{classroom_id}` | Historial de eventos del aula |
+| `GET` | `/events/similar` | Búsqueda semántica de eventos similares |
+| `GET` | `/patterns/{classroom_id}` | Análisis de patrones: clustering + temporal + efectividad |
+| `POST` | `/recommendations` | Solicitar recomendación pedagógica (agente LangGraph) |
+| `GET` | `/recommendations/{classroom_id}` | Historial de recomendaciones |
+| `POST` | `/recommendations/{id}/feedback` | Feedback docente (útil / no útil) |
+| `POST` | `/summaries` | Generar resumen semanal para familias |
+| `GET` | `/health` | Estado del sistema |
+
+---
+
+## Instalación y despliegue
+
+### Requisitos previos
+
+- Docker y Docker Compose instalados
+- Acceso a la API de Salamandra/ALIA ([solicitar acceso en alia.gob.es](https://alia.gob.es))
+- Python 3.11+ (para desarrollo local sin Docker)
+
+### Despliegue con Docker Compose (recomendado)
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/Barbarasanchez11/AULA_backend.git
+cd AULA_backend
+
+# 2. Copiar y configurar variables de entorno
+cp .env.example .env
+# Editar .env con tu API key de Salamandra/ALIA y configuración de base de datos
+
+# 3. Levantar todos los servicios
+docker compose up -d
+
+# 4. Verificar que el sistema está operativo
+curl http://localhost:8000/health
+```
+
+### Desarrollo local
+
+```bash
+# Crear entorno virtual
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate   # Windows
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Iniciar el servidor de desarrollo
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Variables de entorno necesarias
+
+```env
+# API de Salamandra/ALIA
+ALIA_API_KEY=tu_api_key_aqui
+ALIA_API_URL=https://api.alia.gob.es/v1
+
+# Base de datos
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/aulaplus
+
+# ChromaDB
+CHROMA_PERSIST_DIR=./chroma_data
+
+# Configuración de seguridad
+SECRET_KEY=tu_clave_secreta
+```
+
+---
+
+## Privacidad y cumplimiento RGPD
+
+El sistema implementa privacidad por diseño en múltiples capas:
+
+**PIIValidator** — detecta y bloquea automáticamente antes de cualquier persistencia:
+- Nombres propios (NER con spaCy)
+- Números de DNI / NIE
+- Números de teléfono
+- Direcciones de email
+
+**Aislamiento por aula** — cada aula tiene su propia instancia de ChromaDB y su propio namespace en PostgreSQL. Es arquitectónicamente imposible que una consulta de un aula retorne datos de otra.
+
+**Sin identificadores de alumnos** — el modelo de datos no incluye ningún campo para identificar alumnos individualmente. Los eventos son del aula como entidad, nunca del alumno.
+
+**Logs de auditoría** — todas las operaciones críticas quedan registradas con timestamp y classroom_id, sin incluir el contenido de los eventos.
+
+El sistema está diseñado para facilitar el cumplimiento del RGPD (UE 2016/679) en el tratamiento de datos en entornos educativos con menores. Para el despliegue en producción se recomienda elaborar un DPIA específico para el centro educativo.
+
+---
+
+## Estructura del proyecto
+
+```
+AULA_backend/
+├── app/                       # Directorio raíz del código
+│   ├── main.py                # Punto de entrada FastAPI
+│   ├── routers/               # Endpoints por dominio
+│   │   ├── admin.py           # Endpoint de seeding (/admin/seed)
+│   │   ├── classrooms.py
+│   │   ├── events.py
+│   │   ├── recommendations.py
+│   │   └── summaries.py
+│   ├── services/
+│   │   ├── langgraph/         # Pipeline de agentes (4 nodos)
+│   │   ├── embeddingService.py # sentence-transformers en local
+│   │   ├── pii_validator.py   # Detección y bloqueo de PII
+│   │   ├── vector_store.py    # Gestión de ChromaDB
+│   │   └── pattern_analysis.py # DBSCAN + análisis temporal
+│   ├── models/                # Modelos SQLAlchemy y database.py
+│   └── schemas/               # Esquemas Pydantic v2
+├── docs/                      # Documentación detallada
+├── scripts/                   # Scripts de utilidad
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+└── .env.example
+```
+
+---
+
+## Cómo contribuir
+
+AULA+ es software libre y las contribuciones son bienvenidas, especialmente de:
+
+- **Profesionales de la educación especial y TEA** — feedback sobre los tipos de eventos, los apoyos disponibles y el lenguaje de las recomendaciones
+- **Desarrolladores** — mejoras en el pipeline de análisis, nuevos tipos de patrones, optimizaciones de rendimiento
+- **Investigadores** — validación del enfoque pedagógico, estudios de caso, propuestas de nuevas métricas
+
+Para contribuir:
+
+1. Haz un fork del repositorio
+2. Crea una rama con un nombre descriptivo: `git checkout -b feature/nombre-de-la-mejora`
+3. Realiza tus cambios y asegúrate de que los tests pasan
+4. Abre un Pull Request describiendo qué cambia y por qué
+
+Para cambios significativos en el comportamiento del sistema o en el modelo de datos, abre primero un Issue para discutirlo antes de implementar.
+
+---
+
+## Licencia
+
+AULA+ Backend está publicado bajo la **[Licencia Apache 2.0](LICENSE)**.
+
+Puedes usar, modificar y redistribuir este código libremente, incluso con fines comerciales, manteniendo el aviso de copyright original. Consulta el archivo [LICENSE](LICENSE) para el texto completo.
+
+---
+
+## Créditos y reconocimientos
+
+- **Salamandra-7b-instruct** — [Barcelona Supercomputing Center (BSC-CNS)](https://www.bsc.es/) / Iniciativa [ALIA](https://alia.gob.es) del Gobierno de España
+- **Verificación regulatoria** — [AESIA](https://www.aesia.es/) — Agencia Española de Supervisión de la Inteligencia Artificial
+- **Desarrollado en el contexto de** — Hackathon OdiseIA4Good 2026
+
+---
+
+*AULA+ no analiza a los alumnos. Analiza el entorno que produce las dificultades.*
