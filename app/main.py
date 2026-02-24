@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, status
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from .routers import events, classrooms, recommendations
+from .routers import events, classrooms, recommendations, admin
 
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -76,6 +76,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         }
     )
 
+app.include_router(admin.router)
 app.include_router(events.router)
 app.include_router(classrooms.router)
 app.include_router(recommendations.router)
