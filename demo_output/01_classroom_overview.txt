@@ -1,0 +1,20 @@
+VISIÓN GENERAL DEL AULA
+========================
+
+Total de eventos: 135
+
+Distribución por tipo:
+  - TRANSICION: 53 (39.3%)
+  - CAMBIO_DE_RUTINA: 35 (25.9%)
+  - REGULACION: 19 (14.1%)
+  - APRENDIZAJE: 28 (20.7%)
+
+Distribución por resultado:
+  - EXITOSO: 89 (65.9%)
+  - PARCIAL: 41 (30.4%)
+  - DIFICULTAD: 5 (3.7%)
+
+Distribución por momento:
+  - mañana: 43 (31.9%)
+  - tarde: 63 (46.7%)
+  - mediodia: 29 (21.5%)

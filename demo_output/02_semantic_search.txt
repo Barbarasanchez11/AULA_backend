@@ -1,0 +1,26 @@
+BÚSQUEDA SEMÁNTICA
+==================
+
+Consulta: 'sobrecarga sensorial'
+
+Resultado 1 (Similitud: 0.173):
+  Tipo: REGULACION
+  Descripción: Momento de sobrecarga sensorial en el aula
+  Resultado: EXITOSO
+  Apoyos: Adaptación del entorno
+  Observaciones: Se logró una regulación emocional adecuada
+
+Resultado 2 (Similitud: 0.173):
+  Tipo: REGULACION
+  Descripción: Momento de sobrecarga sensorial en el aula
+  Resultado: EXITOSO
+  Apoyos: Adaptación del entorno
+  Observaciones: Se logró una regulación emocional adecuada
+
+Resultado 3 (Similitud: 0.159):
+  Tipo: REGULACION
+  Descripción: Momento de sobrecarga sensorial en el aula
+  Resultado: EXITOSO
+  Apoyos: Pausa sensorial
+  Observaciones: Todos se incorporaron sin dificultades
+

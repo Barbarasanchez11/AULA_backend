@@ -1,0 +1,51 @@
+RECOMENDACIONES PEDAGÓGICAS
+==========================
+
+Recomendación 1:
+  Título: Priorizar uso de Anticipación visual
+  Confianza: ALTA
+  Tipo: ESTRATEGIA
+  Descripción: El apoyo 'Anticipación visual' ha mostrado buena efectividad (71% de éxito) en 59 situaciones analizadas especialmente en tarde. Se recomienda considerarlo como opción preferente cuando se presenten situaciones similares.
+  Patrón detectado: Análisis de 59 eventos muestra que Anticipación visual se utilizó con una tasa de éxito del 71%. Este patrón sugiere que es una estrategia efectiva para este aula.
+  Contexto: Considerar Anticipación visual cuando se presenten situaciones similares a las analizadas especialmente en tarde. Los datos históricos del aula muestran que este apoyo ha funcionado de manera consistente en estos contextos.
+
+Recomendación 2:
+  Título: Combinar apoyos: Adaptación del entorno + Pausa sensorial
+  Confianza: ALTA
+  Tipo: ESTRATEGIA
+  Descripción: La combinación de 'Adaptación del entorno + Pausa sensorial' ha demostrado ser especialmente efectiva con una tasa de éxito del 100% en 2 situaciones. Se recomienda usar esta combinación cuando se presenten contextos similares.
+  Patrón detectado: Análisis de 2 eventos muestra que la combinación de Adaptación del entorno + Pausa sensorial se utilizó con una tasa de éxito del 100%. Este patrón indica que estos apoyos funcionan bien juntos en este contexto.
+  Contexto: En situaciones que requieran apoyo adicional, se recomienda usar esta combinación: Adaptación del entorno + Pausa sensorial. Los datos del aula muestran que esta combinación ha funcionado bien en contextos similares, sugiriendo una sinergia entre estos apoyos.
+
+Recomendación 3:
+  Título: Anticipar eventos los juevess por la tarde
+  Confianza: MEDIA
+  Tipo: ANTICIPACION
+  Descripción: El análisis de eventos muestra que los juevess por la tarde concentran el 24% de los eventos registrados (33 de 135). Esto sugiere que puede ser útil preparar estrategias de anticipación para estos momentos.
+  Patrón detectado: Análisis temporal: 33 de 135 eventos (24%) ocurrieron los juevess por la tarde. Este patrón recurrente indica que estos momentos requieren planificación anticipada.
+  Contexto: Los juevess por la tarde han sido identificados como un momento a considerar. Se recomienda preparar con anticipación estrategias de apoyo, rutinas claras y recursos necesarios para facilitar la transición en estos momentos.
+
+Recomendación 4:
+  Título: Estrategia para eventos tipo TRANSICION
+  Confianza: ALTA
+  Tipo: ESTRATEGIA
+  Descripción: El análisis ha identificado 131 eventos similares de tipo 'TRANSICION' con resultados mayormente positivos (66% de éxito). Estos eventos comparten características semánticas que sugieren un patrón común. Puede ser útil considerar estrategias similares cuando se presenten situaciones similares. En estos eventos, el apoyo 'Anticipación visual' fue el más utilizado.
+  Patrón detectado: Análisis de similitud semántica: 131 eventos de tipo 'TRANSICION' forman un grupo con características similares. De estos, 87 fueron exitosos (66%), sugiriendo un patrón reconocible en el aula.
+  Contexto: Ante situaciones que se asemejen a eventos tipo 'TRANSICION', puede ser útil considerar estrategias similares. Los eventos históricos similares pueden servir como referencia para decidir qué estrategias y apoyos utilizar. El apoyo 'Anticipación visual' puede ser especialmente relevante en estos contextos.
+
+Recomendación 5:
+  Título: Estrategia para eventos tipo APRENDIZAJE
+  Confianza: BAJA
+  Tipo: ESTRATEGIA
+  Descripción: El análisis ha identificado 2 eventos similares de tipo 'APRENDIZAJE' con resultados mixtos (0% de éxito). Estos eventos comparten características semánticas que sugieren un patrón común. Se sugiere revisar qué estrategias funcionaron mejor cuando se presenten situaciones similares. En estos eventos, el apoyo 'Apoyo individual del adulto' fue el más utilizado.
+  Patrón detectado: Análisis de similitud semántica: 2 eventos de tipo 'APRENDIZAJE' forman un grupo con características similares. De estos, 0 fueron exitosos (0%), sugiriendo un patrón reconocible en el aula.
+  Contexto: Ante situaciones que se asemejen a eventos tipo 'APRENDIZAJE', se sugiere revisar qué estrategias funcionaron mejor. Los eventos históricos similares pueden servir como referencia para decidir qué estrategias y apoyos utilizar. El apoyo 'Apoyo individual del adulto' puede ser especialmente relevante en estos contextos.
+
+Recomendación 6:
+  Título: Estrategia para eventos tipo REGULACION
+  Confianza: ALTA
+  Tipo: ESTRATEGIA
+  Descripción: El análisis ha identificado 2 eventos similares de tipo 'REGULACION' con resultados muy positivos (100% de éxito). Estos eventos comparten características semánticas que sugieren un patrón común. Se recomienda aplicar estrategias similares cuando se presenten situaciones similares. En estos eventos, el apoyo 'Mediación verbal' fue el más utilizado.
+  Patrón detectado: Análisis de similitud semántica: 2 eventos de tipo 'REGULACION' forman un grupo con características similares. De estos, 2 fueron exitosos (100%), sugiriendo un patrón reconocible en el aula.
+  Contexto: Ante situaciones que se asemejen a eventos tipo 'REGULACION', se recomienda aplicar estrategias similares. Los eventos históricos similares pueden servir como referencia para decidir qué estrategias y apoyos utilizar. El apoyo 'Mediación verbal' puede ser especialmente relevante en estos contextos.
+

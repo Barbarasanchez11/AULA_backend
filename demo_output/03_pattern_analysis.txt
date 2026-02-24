@@ -1,0 +1,13 @@
+ANÁLISIS DE PATRONES
+===================
+
+CLUSTERING:
+  Clusters detectados: 3
+  Outliers: 0
+
+PATRONES TEMPORALES:
+  Momento más común: tarde
+  Día más común: jueves
+
+EFECTIVIDAD DE APOYOS:
+  Apoyo más efectivo: Anticipación visual

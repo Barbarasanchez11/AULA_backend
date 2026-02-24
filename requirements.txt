@@ -1,0 +1,31 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sqlalchemy
+alembic
+psycopg2-binary
+asyncpg
+python-dotenv
+httpx
+pytest
+# Dependencies for embeddings and ML
+# Note: torch is installed automatically as dependency of sentence-transformers
+# Current compatible version: torch 2.2.2 (PyTorch 2.4.0+ not available in standard pip index)
+# If you need a newer PyTorch version, install from: https://pytorch.org/get-started/locally/
+sentence-transformers
+transformers<4.44.0
+accelerate<0.30.0
+protobuf<4.21.0
+tf-keras
+scikit-learn
+numpy<2.0  
+chromadb
+colorama  # Vector database for storing and searching embeddings
+# Dependencies for LangGraph and LLM
+langgraph
+langchain
+# langchain-groq  # Desactivado para usar HuggingFace
+langchain-huggingface
+langchain-core
+nest-asyncio  # Allow nested event loops (needed for async DB calls in sync LangGraph nodes)
